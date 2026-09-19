@@ -123,6 +123,46 @@
         </label>
 
         <label class="field">
+          <span>Profile photo URL</span>
+          <input id="profile-avatar-url" type="url" placeholder="https://example.com/avatar.jpg">
+        </label>
+
+        <label class="field">
+          <span>Phone number</span>
+          <input id="profile-phone" type="tel" placeholder="+1 555 123 4567">
+        </label>
+
+        <label class="field">
+          <span>Company name</span>
+          <input id="profile-company" type="text" placeholder="One Tap Studio">
+        </label>
+
+        <label class="field">
+          <span>Location / address</span>
+          <input id="profile-location" type="text" placeholder="Singapore, Singapore">
+        </label>
+
+        <label class="field">
+          <span>Instagram</span>
+          <input id="profile-instagram" type="url" placeholder="https://instagram.com/yourname">
+        </label>
+
+        <label class="field">
+          <span>Facebook</span>
+          <input id="profile-facebook" type="url" placeholder="https://facebook.com/yourname">
+        </label>
+
+        <label class="field">
+          <span>TikTok</span>
+          <input id="profile-tiktok" type="url" placeholder="https://tiktok.com/@yourname">
+        </label>
+
+        <label class="field">
+          <span>Bio description</span>
+          <textarea id="profile-bio" rows="3" placeholder="Helping brands stand out with memorable digital experiences."></textarea>
+        </label>
+
+        <label class="field">
           <span>Website</span>
           <input id="profile-website" type="url" placeholder="https://example.com">
         </label>
@@ -182,6 +222,14 @@
       document.getElementById('profile-accent').value = profile.accent || '#2563EB';
       document.getElementById('profile-theme').value = profile.theme === 'dark' ? 'dark' : 'light';
       document.getElementById('profile-mode').value = profile.mode === 'local' ? 'local' : 'public';
+      document.getElementById('profile-avatar-url').value = profile.avatarUrl || profile.avatar || '';
+      document.getElementById('profile-phone').value = profile.phone || '';
+      document.getElementById('profile-company').value = profile.company || '';
+      document.getElementById('profile-location').value = profile.location || '';
+      document.getElementById('profile-instagram').value = profile.instagram || '';
+      document.getElementById('profile-facebook').value = profile.facebook || '';
+      document.getElementById('profile-tiktok').value = profile.tiktok || '';
+      document.getElementById('profile-bio').value = profile.bio || '';
       document.getElementById('profile-website').value = profile.website || '';
     }
 
@@ -195,10 +243,13 @@
       }
 
       const fileInput = document.getElementById('profile-avatar-upload');
-      let avatar = (getCurrentProfile().avatar || '').trim();
+      const avatarUrl = document.getElementById('profile-avatar-url').value.trim();
+      let avatar = (getCurrentProfile().avatar || avatarUrl || '').trim();
 
       if (fileInput && fileInput.files && fileInput.files[0]) {
         avatar = await readFileAsDataUrl(fileInput.files[0]);
+      } else if (avatarUrl) {
+        avatar = avatarUrl;
       }
 
       const payload = saveCustomerProfile({
@@ -209,7 +260,15 @@
         theme: document.getElementById('profile-theme').value,
         mode: document.getElementById('profile-mode').value,
         website: document.getElementById('profile-website').value,
-        avatar
+        company: document.getElementById('profile-company').value,
+        phone: document.getElementById('profile-phone').value,
+        location: document.getElementById('profile-location').value,
+        instagram: document.getElementById('profile-instagram').value,
+        facebook: document.getElementById('profile-facebook').value,
+        tiktok: document.getElementById('profile-tiktok').value,
+        bio: document.getElementById('profile-bio').value,
+        avatar,
+        avatarUrl: avatar
       });
 
       if (payload.error) {
@@ -229,6 +288,15 @@
       profile.accent = document.getElementById('profile-accent').value || '#2563EB';
       profile.theme = document.getElementById('profile-theme').value || 'light';
       profile.mode = document.getElementById('profile-mode').value || 'public';
+      profile.company = document.getElementById('profile-company').value || '';
+      profile.phone = document.getElementById('profile-phone').value || '';
+      profile.location = document.getElementById('profile-location').value || '';
+      profile.instagram = document.getElementById('profile-instagram').value || '';
+      profile.facebook = document.getElementById('profile-facebook').value || '';
+      profile.tiktok = document.getElementById('profile-tiktok').value || '';
+      profile.bio = document.getElementById('profile-bio').value || '';
+      profile.avatarUrl = document.getElementById('profile-avatar-url').value || profile.avatar || '';
+      profile.avatar = profile.avatarUrl;
       profile.website = document.getElementById('profile-website').value || '';
       saveCustomerProfile(profile);
       window.location.href = 'profile.html#data=' + encodeProfile(profile);

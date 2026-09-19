@@ -250,6 +250,28 @@ function renderProfile(profile, root, opts) {
     header.appendChild(tagEl);
   }
 
+  if (profile.company) {
+    const companyEl = document.createElement('p');
+    companyEl.className = 'profile-company';
+    companyEl.textContent = profile.company;
+    header.appendChild(companyEl);
+  }
+
+  if (profile.bio) {
+    const bioEl = document.createElement('p');
+    bioEl.className = 'profile-bio';
+    bioEl.textContent = profile.bio;
+    header.appendChild(bioEl);
+  }
+
+  const locationText = profile.location || (profile.address && (profile.address.city || profile.address.street || profile.address.country)) || '';
+  if (locationText) {
+    const locationEl = document.createElement('p');
+    locationEl.className = 'profile-location';
+    locationEl.textContent = locationText;
+    header.appendChild(locationEl);
+  }
+
   root.appendChild(header);
 
   const main = document.createElement('main');
@@ -266,6 +288,52 @@ function renderProfile(profile, root, opts) {
     saveBtn.addEventListener('click', () => opts.onOpenContactSheet && opts.onOpenContactSheet(profile));
     wrapFade(saveBtn, main.children.length);
     main.appendChild(saveBtn);
+  }
+
+  const directLinks = [];
+  const socialLinks = [
+    { type: 'instagram', label: 'Instagram', value: profile.instagram },
+    { type: 'facebook', label: 'Facebook', value: profile.facebook },
+    { type: 'tiktok', label: 'TikTok', value: profile.tiktok },
+    { type: 'website', label: 'Website', value: profile.website }
+  ];
+
+  socialLinks.forEach(link => {
+    if (link.value) directLinks.push(link);
+  });
+
+  if (directLinks.length) {
+    const section = document.createElement('section');
+    section.className = 'link-group';
+
+    const heading = document.createElement('h2');
+    heading.className = 'group-heading';
+    heading.textContent = 'Connect';
+    section.appendChild(heading);
+
+    const list = document.createElement('ul');
+    list.className = 'group-list';
+
+    directLinks.forEach(link => {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.className = 'link-btn';
+      a.href = linkHref(link.type, link.value);
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.appendChild(iconChip(link.type));
+      const labelEl = document.createElement('span');
+      labelEl.className = 'link-label';
+      labelEl.textContent = link.label;
+      a.appendChild(labelEl);
+      a.appendChild(iconEl('chevron'));
+      li.appendChild(a);
+      list.appendChild(li);
+    });
+
+    section.appendChild(list);
+    wrapFade(section, main.children.length);
+    main.appendChild(section);
   }
 
   /* Grouped links */

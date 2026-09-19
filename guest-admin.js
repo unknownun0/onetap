@@ -332,7 +332,14 @@ function createGuestAccount({ guestToken, name, email, password }) {
   const previewUrl = buildGuestPreviewUrl({
     name: cleanName,
     email: cleanEmail,
-    accent: '#2563EB'
+    accent: '#2563EB',
+    company: '',
+    phone: '',
+    location: '',
+    instagram: '',
+    facebook: '',
+    tiktok: '',
+    bio: ''
   });
 
   const guests = getStore('guests').map(item => item.token === guestToken ? {
@@ -467,21 +474,38 @@ function saveCustomerProfile(profile) {
     return { error: 'You must be logged in to save your profile.' };
   }
 
+  const item = profile || {};
+  const avatar = String(item.avatar || item.avatarUrl || '').trim();
+  const phone = String(item.phone || '').trim();
+  const company = String(item.company || '').trim();
+  const location = String(item.location || '').trim();
+  const instagram = String(item.instagram || '').trim();
+  const facebook = String(item.facebook || '').trim();
+  const tiktok = String(item.tiktok || '').trim();
+  const bio = String(item.bio || '').trim();
+
   const payload = {
     id: session.id,
-    name: String(profile && profile.name ? profile.name : session.name || 'Customer').trim() || 'Customer',
-    title: String(profile && profile.title ? profile.title : '').trim(),
-    tagline: String(profile && profile.tagline ? profile.tagline : '').trim(),
-    accent: String(profile && profile.accent ? profile.accent : '#2563EB').trim() || '#2563EB',
-    avatar: String(profile && profile.avatar ? profile.avatar : '').trim(),
-    website: String(profile && profile.website ? profile.website : '').trim(),
-    bio: String(profile && profile.bio ? profile.bio : '').trim(),
-    theme: (profile && (profile.theme === 'dark' || profile.theme === 'light')) ? profile.theme : 'light',
-    mode: profile && (profile.mode === 'local' || profile.mode === 'public') ? profile.mode : 'public',
-    phones: Array.isArray(profile && profile.phones) ? profile.phones : [],
-    emails: Array.isArray(profile && profile.emails) ? profile.emails : [],
-    links: Array.isArray(profile && profile.links) ? profile.links : [],
-    address: profile && profile.address ? profile.address : {},
+    name: String(item.name ? item.name : session.name || 'Customer').trim() || 'Customer',
+    title: String(item.title ? item.title : '').trim(),
+    tagline: String(item.tagline ? item.tagline : '').trim(),
+    accent: String(item.accent ? item.accent : '#2563EB').trim() || '#2563EB',
+    avatar,
+    avatarUrl: avatar,
+    website: String(item.website ? item.website : '').trim(),
+    company,
+    phone,
+    location,
+    instagram,
+    facebook,
+    tiktok,
+    bio,
+    theme: (item.theme === 'dark' || item.theme === 'light') ? item.theme : 'light',
+    mode: item.mode === 'local' || item.mode === 'public' ? item.mode : 'public',
+    phones: Array.isArray(item.phones) ? item.phones : (phone ? [{ label: 'Phone', number: phone }] : []),
+    emails: Array.isArray(item.emails) ? item.emails : [],
+    links: Array.isArray(item.links) ? item.links : [],
+    address: item.address && typeof item.address === 'object' ? item.address : (location ? { city: location } : {}),
     updatedAt: new Date().toISOString()
   };
 

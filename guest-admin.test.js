@@ -144,16 +144,32 @@ test('customer can save profile settings and keep them for their preview', () =>
     tagline: 'Helping brands look sharper',
     accent: '#0f172a',
     theme: 'dark',
-    mode: 'local'
+    mode: 'local',
+    company: 'One Tap Studio',
+    phone: '+1234567890',
+    bio: 'We build standout brand experiences.',
+    location: 'Singapore',
+    instagram: 'https://instagram.com/onetapstudio',
+    facebook: 'https://facebook.com/onetapstudio',
+    tiktok: 'https://tiktok.com/@onetapstudio',
+    avatarUrl: 'https://example.com/avatar.png'
   });
 
   assert.equal(saved.name, 'Profile User');
   assert.equal(saved.title, 'Brand Designer');
   assert.equal(saved.theme, 'dark');
   assert.equal(saved.mode, 'local');
+  assert.equal(saved.company, 'One Tap Studio');
+  assert.equal(saved.phone, '+1234567890');
+  assert.equal(saved.location, 'Singapore');
+  assert.equal(saved.instagram, 'https://instagram.com/onetapstudio');
+  assert.equal(saved.facebook, 'https://facebook.com/onetapstudio');
+  assert.equal(saved.tiktok, 'https://tiktok.com/@onetapstudio');
   assert.equal(getCustomerProfile().tagline, 'Helping brands look sharper');
   assert.equal(getCustomerProfile().theme, 'dark');
   assert.equal(getCustomerProfile().mode, 'local');
+  assert.equal(getCustomerProfile().bio, 'We build standout brand experiences.');
+  assert.equal(getCustomerProfile().avatar, 'https://example.com/avatar.png');
 });
 
 test('used invite shows the customer preview link instead of the original invitation', () => {
