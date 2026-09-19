@@ -75,29 +75,124 @@
         </div>
       </div>
     </section>
+
+    <section class="form-section fade-item">
+      <h2 class="section-heading">Profile settings</h2>
+      <p class="section-hint">Update your public profile and preview the live page.</p>
+
+      <form id="customer-profile-form">
+        <label class="field">
+          <span>Full name</span>
+          <input id="profile-name" type="text" required>
+        </label>
+
+        <label class="field">
+          <span>Title</span>
+          <input id="profile-title" type="text" placeholder="Brand designer">
+        </label>
+
+        <label class="field">
+          <span>Tagline</span>
+          <input id="profile-tagline" type="text" placeholder="Helping brands stand out">
+        </label>
+
+        <label class="field">
+          <span>Accent color</span>
+          <input id="profile-accent" type="color" value="#2563EB">
+        </label>
+
+        <label class="field">
+          <span>Website</span>
+          <input id="profile-website" type="url" placeholder="https://example.com">
+        </label>
+
+        <button type="submit" class="primary-cta">Save profile</button>
+      </form>
+
+      <div class="account-actions" style="margin-top: 12px;">
+        <button type="button" id="preview-profile" class="secondary-cta">Open preview</button>
+      </div>
+    </section>
   </div>
 
+  <script src="app.js"></script>
   <script src="guest-admin.js"></script>
   <script>
     const session = getCustomerSession();
+
+    function getCurrentProfile() {
+      const profileFromStore = getCustomerProfile() || {};
+      return {
+        name: session ? session.name || 'Customer' : 'Customer',
+        title: '',
+        tagline: '',
+        accent: '#2563EB',
+        website: '',
+        ...profileFromStore
+      };
+    }
 
     function renderAccount() {
       const card = document.getElementById('account-card');
       const nameEl = document.getElementById('acct-name');
       const emailEl = document.getElementById('acct-email');
       const roleEl = document.getElementById('acct-role');
+      const statusEl = document.getElementById('acct-status');
 
       if (!session) {
-        card.innerHTML = '<p class="form-subtitle">You need to create an account first.</p><a href="guest-admin.html" class="primary-cta" style="display:inline-block; text-align:center; text-decoration:none;">Go to invite page</a>';
+        card.innerHTML = '<p class="form-subtitle">You need to log in to view this page.</p><a href="customer-login.html" class="primary-cta" style="display:inline-block; text-align:center; text-decoration:none;">Go to customer login</a>';
         return;
       }
 
-      nameEl.textContent = session.name || 'Customer';
+      const profile = getCurrentProfile();
+      nameEl.textContent = profile.name || 'Customer';
       emailEl.textContent = session.email || '—';
       roleEl.textContent = (session.role || 'guest').toUpperCase();
+      statusEl.textContent = 'Active';
+
+      document.getElementById('profile-name').value = profile.name || '';
+      document.getElementById('profile-title').value = profile.title || '';
+      document.getElementById('profile-tagline').value = profile.tagline || '';
+      document.getElementById('profile-accent').value = profile.accent || '#2563EB';
+      document.getElementById('profile-website').value = profile.website || '';
     }
 
     renderAccount();
+
+    document.getElementById('customer-profile-form').addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!session) {
+        window.location.href = 'customer-login.html';
+        return;
+      }
+
+      const payload = saveCustomerProfile({
+        name: document.getElementById('profile-name').value,
+        title: document.getElementById('profile-title').value,
+        tagline: document.getElementById('profile-tagline').value,
+        accent: document.getElementById('profile-accent').value,
+        website: document.getElementById('profile-website').value
+      });
+
+      if (payload.error) {
+        alert(payload.error);
+        return;
+      }
+
+      renderAccount();
+      alert('Profile saved.');
+    });
+
+    document.getElementById('preview-profile').addEventListener('click', () => {
+      const profile = getCurrentProfile();
+      profile.name = document.getElementById('profile-name').value || profile.name;
+      profile.title = document.getElementById('profile-title').value || '';
+      profile.tagline = document.getElementById('profile-tagline').value || '';
+      profile.accent = document.getElementById('profile-accent').value || '#2563EB';
+      profile.website = document.getElementById('profile-website').value || '';
+      saveCustomerProfile(profile);
+      window.location.href = 'profile.html#data=' + encodeProfile(profile);
+    });
 
     document.getElementById('logout-customer').addEventListener('click', () => {
       logoutCustomer();

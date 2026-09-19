@@ -258,6 +258,59 @@ function logoutCustomer() {
   return true;
 }
 
+function getCustomerProfile() {
+  const session = getCustomerSession();
+  const key = session && session.id ? `onetap_customer_profile_${session.id}` : 'onetap_customer_profile';
+
+  try {
+    const raw = getStorage().getItem(key);
+    if (!raw) {
+      const legacy = getStorage().getItem('onetap_customer_profile');
+      if (!legacy) return null;
+      return JSON.parse(legacy);
+    }
+    return JSON.parse(raw);
+  } catch (error) {
+    return null;
+  }
+}
+
+function saveCustomerProfile(profile) {
+  const session = getCustomerSession();
+  if (!session || !session.id) {
+    return { error: 'You must be logged in to save your profile.' };
+  }
+
+  const payload = {
+    id: session.id,
+    name: String(profile && profile.name ? profile.name : session.name || 'Customer').trim() || 'Customer',
+    title: String(profile && profile.title ? profile.title : '').trim(),
+    tagline: String(profile && profile.tagline ? profile.tagline : '').trim(),
+    accent: String(profile && profile.accent ? profile.accent : '#2563EB').trim() || '#2563EB',
+    avatar: String(profile && profile.avatar ? profile.avatar : '').trim(),
+    website: String(profile && profile.website ? profile.website : '').trim(),
+    bio: String(profile && profile.bio ? profile.bio : '').trim(),
+    phones: Array.isArray(profile && profile.phones) ? profile.phones : [],
+    emails: Array.isArray(profile && profile.emails) ? profile.emails : [],
+    links: Array.isArray(profile && profile.links) ? profile.links : [],
+    address: profile && profile.address ? profile.address : {},
+    updatedAt: new Date().toISOString()
+  };
+
+  const key = `onetap_customer_profile_${session.id}`;
+  getStorage().setItem(key, JSON.stringify(payload));
+
+  const accounts = getStore('accounts').map(item => item.id === session.id ? { ...item, name: payload.name } : item);
+  setStore('accounts', accounts);
+  setCustomerSession({
+    ...session,
+    name: payload.name,
+    updatedAt: new Date().toISOString()
+  });
+
+  return payload;
+}
+
 if (typeof module !== 'undefined') {
   module.exports = {
     STORAGE_KEYS,
@@ -276,6 +329,8 @@ if (typeof module !== 'undefined') {
     getCustomerSession,
     setCustomerSession,
     loginCustomer,
-    logoutCustomer
+    logoutCustomer,
+    getCustomerProfile,
+    saveCustomerProfile
   };
 }

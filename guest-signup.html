@@ -39,10 +39,16 @@
   <script>
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
+    const invitingGuest = token ? getGuestByToken(token) : null;
 
-    if (!token) {
+    if (!token || !invitingGuest) {
       alert('This invite link is invalid.');
-      window.location.href = 'guest-admin.html';
+      window.location.href = 'customer-login.html';
+    }
+
+    if (invitingGuest && invitingGuest.status === 'used') {
+      alert('This invite has already been used. Redirecting to your account.');
+      window.location.href = 'customer-account.html';
     }
 
     document.getElementById('guest-signup-form').addEventListener('submit', (event) => {

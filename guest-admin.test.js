@@ -10,7 +10,9 @@ const {
   getStore,
   getCustomerSession,
   setCustomerSession,
-  loginCustomer
+  loginCustomer,
+  saveCustomerProfile,
+  getCustomerProfile
 } = require('./guest-admin.js');
 
 test('createGuestInvite adds a new guest with a token and sign-up URL', () => {
@@ -74,4 +76,31 @@ test('customer can sign in and keep a session for their account page', () => {
   assert.equal(login.account.email, 'customer@example.com');
   assert.equal(getCustomerSession().email, 'customer@example.com');
   assert.equal(account.email, 'customer@example.com');
+});
+
+test('customer can save profile settings and keep them for their preview', () => {
+  setStore('guests', []);
+  setStore('accounts', []);
+  setCustomerSession(null);
+
+  const guest = createGuestInvite({ name: 'Profile User', email: 'profile@example.com' });
+  createGuestAccount({
+    guestToken: guest.token,
+    name: 'Profile User',
+    email: 'profile@example.com',
+    password: 'secret123'
+  });
+
+  loginCustomer({ email: 'profile@example.com', password: 'secret123' });
+
+  const saved = saveCustomerProfile({
+    name: 'Profile User',
+    title: 'Brand Designer',
+    tagline: 'Helping brands look sharper',
+    accent: '#0f172a'
+  });
+
+  assert.equal(saved.name, 'Profile User');
+  assert.equal(saved.title, 'Brand Designer');
+  assert.equal(getCustomerProfile().tagline, 'Helping brands look sharper');
 });

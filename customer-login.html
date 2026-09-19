@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Customer login</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page">
+    <section class="form-section fade-item">
+      <h1 class="form-title">Customer login</h1>
+      <p class="form-subtitle">Sign in to your account and open your live profile.</p>
+
+      <form id="customer-login-form">
+        <label class="field">
+          <span>Email</span>
+          <input type="email" id="customer-email" required>
+        </label>
+
+        <label class="field">
+          <span>Password</span>
+          <input type="password" id="customer-password" required>
+        </label>
+
+        <button type="submit" class="primary-cta">Login</button>
+      </form>
+
+      <p class="section-hint" style="margin-top: 16px;">Need to create an account? Use the invite link from the admin.</p>
+      <a href="index.html" class="secondary-cta" style="display:inline-block; text-align:center; text-decoration:none;">Back to home</a>
+    </section>
+  </div>
+
+  <script src="guest-admin.js"></script>
+  <script>
+    const existingSession = getCustomerSession();
+    if (existingSession) {
+      window.location.href = 'customer-account.html';
+    }
+
+    document.getElementById('customer-login-form').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const result = loginCustomer({
+        email: document.getElementById('customer-email').value,
+        password: document.getElementById('customer-password').value
+      });
+
+      if (!result.ok) {
+        alert(result.error || 'Unable to log in.');
+        return;
+      }
+
+      window.location.href = 'customer-account.html';
+    });
+  </script>
+</body>
+</html>
