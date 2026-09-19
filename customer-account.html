@@ -102,6 +102,14 @@
         </label>
 
         <label class="field">
+          <span>Theme</span>
+          <select id="profile-theme">
+            <option value="light">Light mode</option>
+            <option value="dark">Dark mode</option>
+          </select>
+        </label>
+
+        <label class="field">
           <span>Website</span>
           <input id="profile-website" type="url" placeholder="https://example.com">
         </label>
@@ -128,6 +136,7 @@
         tagline: '',
         accent: '#2563EB',
         website: '',
+        theme: 'light',
         ...profileFromStore
       };
     }
@@ -145,6 +154,9 @@
       }
 
       const profile = getCurrentProfile();
+      document.body.classList.toggle('theme-dark', profile.theme === 'dark');
+      document.body.classList.toggle('theme-light', profile.theme !== 'dark');
+
       nameEl.textContent = profile.name || 'Customer';
       emailEl.textContent = session.email || '—';
       roleEl.textContent = (session.role || 'guest').toUpperCase();
@@ -154,6 +166,7 @@
       document.getElementById('profile-title').value = profile.title || '';
       document.getElementById('profile-tagline').value = profile.tagline || '';
       document.getElementById('profile-accent').value = profile.accent || '#2563EB';
+      document.getElementById('profile-theme').value = profile.theme === 'dark' ? 'dark' : 'light';
       document.getElementById('profile-website').value = profile.website || '';
     }
 
@@ -171,6 +184,7 @@
         title: document.getElementById('profile-title').value,
         tagline: document.getElementById('profile-tagline').value,
         accent: document.getElementById('profile-accent').value,
+        theme: document.getElementById('profile-theme').value,
         website: document.getElementById('profile-website').value
       });
 
@@ -189,6 +203,7 @@
       profile.title = document.getElementById('profile-title').value || '';
       profile.tagline = document.getElementById('profile-tagline').value || '';
       profile.accent = document.getElementById('profile-accent').value || '#2563EB';
+      profile.theme = document.getElementById('profile-theme').value || 'light';
       profile.website = document.getElementById('profile-website').value || '';
       saveCustomerProfile(profile);
       window.location.href = 'profile.html#data=' + encodeProfile(profile);

@@ -6,7 +6,31 @@
   --muted: #64748B;
   --border: #E2E8F0;
   --accent: #2563EB;
+  --card: #FFFFFF;
+  --page-bg: #FFFFFF;
+  --soft-bg: #F8FAFC;
   --radius: 14px;
+}
+
+body.theme-light {
+  --bg: #FFFFFF;
+  --text: #0F172A;
+  --muted: #64748B;
+  --border: #E2E8F0;
+  --card: #FFFFFF;
+  --page-bg: #FFFFFF;
+  --soft-bg: #F8FAFC;
+}
+
+body.theme-dark {
+  --bg: #020817;
+  --text: #E2E8F0;
+  --muted: #94A3B8;
+  --border: #1E293B;
+  --accent: #60A5FA;
+  --card: #0F172A;
+  --page-bg: #020817;
+  --soft-bg: #111827;
 }
 
 * { box-sizing: border-box; }
@@ -14,7 +38,7 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: var(--bg);
+  background: var(--page-bg);
   color: var(--text);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -23,7 +47,13 @@ html, body {
 body.landing-page {
   background:
     radial-gradient(circle at top left, rgba(37,99,235,0.12), transparent 28%),
-    linear-gradient(180deg, #f8fafc 0%, #f3f4f6 100%);
+    linear-gradient(180deg, var(--soft-bg) 0%, #f3f4f6 100%);
+}
+
+body.theme-dark.landing-page {
+  background:
+    radial-gradient(circle at top left, rgba(96,165,250,0.12), transparent 28%),
+    linear-gradient(180deg, #020817 0%, #0f172a 100%);
 }
 
 .page {
@@ -247,6 +277,16 @@ button {
   justify-content: center;
   color: var(--muted);
 }
+
+body.theme-dark .share-btn,
+body.theme-dark .icon-btn,
+body.theme-dark .remove-row-btn,
+body.theme-dark .pill-btn,
+body.theme-dark .secondary-cta {
+  background: var(--card);
+  color: var(--text);
+  border-color: var(--border);
+}
 .share-btn:hover { background: #F1F5F9; }
 
 .avatar {
@@ -295,7 +335,7 @@ button {
   padding: 0 14px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: #fff;
+  background: var(--card);
   box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
   transition: transform .15s ease, box-shadow .15s ease;
 }
@@ -391,7 +431,7 @@ dialog.sheet::backdrop { background: rgba(15, 23, 42, .4); }
   gap: 6px;
   padding: 12px 4px;
   border-radius: 12px;
-  background: #F8FAFC;
+  background: var(--soft-bg);
   color: var(--accent);
   font-size: 12px;
 }
@@ -431,6 +471,7 @@ a.sheet-row-value:hover { text-decoration: underline; }
   border-radius: var(--radius);
   padding: 18px;
   margin-bottom: 18px;
+  background: var(--card);
 }
 .section-heading { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
 .section-hint { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
@@ -444,7 +485,7 @@ a.sheet-row-value:hover { text-decoration: underline; }
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: #fff;
+  background: var(--page-bg);
   width: 100%;
 }
 .field input:focus, .field select:focus { border-color: var(--accent); }

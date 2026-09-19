@@ -134,12 +134,15 @@ test('customer can save profile settings and keep them for their preview', () =>
     name: 'Profile User',
     title: 'Brand Designer',
     tagline: 'Helping brands look sharper',
-    accent: '#0f172a'
+    accent: '#0f172a',
+    theme: 'dark'
   });
 
   assert.equal(saved.name, 'Profile User');
   assert.equal(saved.title, 'Brand Designer');
+  assert.equal(saved.theme, 'dark');
   assert.equal(getCustomerProfile().tagline, 'Helping brands look sharper');
+  assert.equal(getCustomerProfile().theme, 'dark');
 });
 
 test('used invite shows the customer preview link instead of the original invitation', () => {

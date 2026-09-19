@@ -166,6 +166,10 @@ function downloadVCard(profile) {
 /* ---------- Set document metadata from profile ---------- */
 function applyMeta(profile) {
   document.title = profile.name + (profile.title ? ' — ' + profile.title : '');
+  const theme = profile.theme === 'dark' ? 'dark' : 'light';
+  document.body.classList.toggle('theme-dark', theme === 'dark');
+  document.body.classList.toggle('theme-light', theme === 'light');
+
   const desc = profile.tagline || profile.title || (profile.name + "'s profile");
   let metaDesc = document.querySelector('meta[name="description"]');
   if (!metaDesc) {
