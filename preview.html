@@ -39,6 +39,8 @@ if (!profile) {
   root.appendChild(empty);
 } else {
   document.getElementById('banner').hidden = false;
+  const modeLabel = profile.mode === 'local' ? 'Local preview — not a public live profile.' : 'Public share — this version is ready to publish.';
+  document.querySelector('#banner span').textContent = modeLabel;
 
   renderProfile(profile, root, {
     shareUrl: profileUrl(profile, 'profile.html'),

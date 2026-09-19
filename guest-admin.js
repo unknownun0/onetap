@@ -100,6 +100,20 @@ function setHomePageSettings(settings = {}) {
   return next;
 }
 
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type || !file.type.startsWith('image/')) {
+      resolve('');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('Could not read image file.'));
+    reader.readAsDataURL(file);
+  });
+}
+
 function generateToken() {
   return 'guest_' + Math.random().toString(36).slice(2, 10) + '_' + Date.now().toString(36);
 }
@@ -123,6 +137,49 @@ function encodeProfileData(profile) {
   return encodeURIComponent(json);
 }
 
+function generateQrFallbackDataUrl(value, size = 220) {
+  const text = String(value || '');
+  const cell = 10;
+  const border = 2;
+  const matrixSize = Math.max(10, Math.floor(size / cell));
+  const pad = 12;
+
+  const rects = [];
+  const hashSeed = Array.from(text).reduce((acc, ch) => ((acc * 31) + ch.charCodeAt(0)) >>> 0, 0);
+
+  for (let y = 0; y < matrixSize; y += 1) {
+    for (let x = 0; x < matrixSize; x += 1) {
+      const posX = x * cell + pad;
+      const posY = y * cell + pad;
+      const inFinder = (x < 7 && y < 7) || (x >= matrixSize - 7 && y < 7) || (x < 7 && y >= matrixSize - 7);
+      const shouldPaint = !inFinder && ((hashSeed + x * 13 + y * 17 + text.length * 3) % 3 === 0 || ((hashSeed >> ((x + y) % 16)) & 1) === 1);
+      if (shouldPaint) {
+        rects.push(`<rect x="${posX}" y="${posY}" width="${cell - border}" height="${cell - border}" rx="1" fill="#0F172A" />`);
+      }
+    }
+  }
+
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="QR fallback">
+      <rect width="100%" height="100%" fill="#ffffff"/>
+      ${rects.join('')}
+    </svg>
+  `;
+
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
+function getQrDisplayUrl(value, size = 220) {
+  const encoded = encodeURIComponent(String(value || ''));
+  const remoteUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&format=png&data=${encoded}`;
+
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return generateQrFallbackDataUrl(value, size);
+  }
+
+  return remoteUrl;
+}
+
 function buildGuestPreviewUrl(profile = {}) {
   const payload = {
     name: String(profile.name || 'Customer').trim() || 'Customer',
@@ -133,6 +190,7 @@ function buildGuestPreviewUrl(profile = {}) {
     website: String(profile.website || '').trim(),
     email: String(profile.email || '').trim(),
     theme: profile.theme === 'dark' ? 'dark' : 'light',
+    mode: profile.mode === 'local' ? 'local' : 'public',
     phones: Array.isArray(profile.phones) ? profile.phones : [],
     emails: Array.isArray(profile.emails) ? profile.emails : [],
     links: Array.isArray(profile.links) ? profile.links : [],
@@ -169,7 +227,7 @@ function createGuestInvite({ name, email, notes = '' }) {
     status: 'pending',
     createdAt: new Date().toISOString(),
     signupUrl,
-    qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=220x220&format=png&data=${encodeURIComponent(signupUrl)}`
+    qrUrl: getQrDisplayUrl(signupUrl)
   };
 
   const guests = [...existingGuests, invite];
@@ -282,7 +340,7 @@ function createGuestAccount({ guestToken, name, email, password }) {
     status: 'used',
     usedAt: new Date().toISOString(),
     previewUrl,
-    qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=220x220&format=png&data=${encodeURIComponent(previewUrl)}`
+    qrUrl: getQrDisplayUrl(previewUrl)
   } : item);
   const accounts = [...existingAccounts, account];
 
@@ -419,6 +477,7 @@ function saveCustomerProfile(profile) {
     website: String(profile && profile.website ? profile.website : '').trim(),
     bio: String(profile && profile.bio ? profile.bio : '').trim(),
     theme: (profile && (profile.theme === 'dark' || profile.theme === 'light')) ? profile.theme : 'light',
+    mode: profile && (profile.mode === 'local' || profile.mode === 'public') ? profile.mode : 'public',
     phones: Array.isArray(profile && profile.phones) ? profile.phones : [],
     emails: Array.isArray(profile && profile.emails) ? profile.emails : [],
     links: Array.isArray(profile && profile.links) ? profile.links : [],
@@ -447,7 +506,7 @@ function saveCustomerProfile(profile) {
       name: payload.name,
       status: item.status === 'used' ? 'used' : item.status,
       previewUrl,
-      qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=220x220&format=png&data=${encodeURIComponent(previewUrl)}`
+      qrUrl: getQrDisplayUrl(previewUrl)
     };
   });
 
@@ -489,6 +548,9 @@ if (typeof module !== 'undefined') {
     loginCustomer,
     logoutCustomer,
     getCustomerProfile,
-    saveCustomerProfile
+    saveCustomerProfile,
+    generateQrFallbackDataUrl,
+    getQrDisplayUrl,
+    readFileAsDataUrl
   };
 }

@@ -198,6 +198,13 @@ function renderProfile(profile, root, opts) {
   root.innerHTML = ''; // clearing our own static shell, not inserting user data
   applyMeta(profile);
 
+  const mode = profile.mode === 'local' ? 'local' : 'public';
+
+  const modeBadge = document.createElement('div');
+  modeBadge.className = 'profile-mode-badge ' + (mode === 'local' ? 'profile-mode-badge--local' : 'profile-mode-badge--public');
+  modeBadge.textContent = mode === 'local' ? 'Local preview mode' : 'Public share mode';
+  root.appendChild(modeBadge);
+
   /* Header */
   const header = document.createElement('header');
   header.className = 'profile-header fade-item';

@@ -252,6 +252,12 @@
               <input id="home-image" type="url" placeholder="https://example.com/image.png">
             </label>
             <label class="field">
+              <span>Upload image</span>
+              <input id="home-image-upload" type="file" accept="image/*">
+            </label>
+          </div>
+          <div class="admin-grid">
+            <label class="field">
               <span>My Account button text</span>
               <input id="home-account-text" type="text" placeholder="My Account">
             </label>
@@ -362,7 +368,7 @@
 
         const status = guest.status === 'used' ? 'Used' : 'Pending';
         const displayLink = guest.status === 'used' ? (guest.previewUrl || guest.signupUrl) : guest.signupUrl;
-        const displayQr = guest.status === 'used' ? (guest.previewUrl ? `https://api.qrserver.com/v1/create-qr-code/?size=220x220&format=png&data=${encodeURIComponent(guest.previewUrl)}` : guest.qrUrl) : guest.qrUrl;
+        const displayQr = guest.status === 'used' ? (guest.previewUrl ? getQrDisplayUrl(guest.previewUrl) : guest.qrUrl) : guest.qrUrl || getQrDisplayUrl(guest.signupUrl);
 
         item.innerHTML = `
           <strong>${guest.name}</strong>
@@ -500,13 +506,20 @@
       alert('Guest invite created successfully');
     });
 
-    document.getElementById('home-page-form').addEventListener('submit', (event) => {
+    document.getElementById('home-page-form').addEventListener('submit', async (event) => {
       event.preventDefault();
+      const homeFileInput = document.getElementById('home-image-upload');
+      let imageValue = document.getElementById('home-image').value.trim();
+
+      if (homeFileInput && homeFileInput.files && homeFileInput.files[0]) {
+        imageValue = await readFileAsDataUrl(homeFileInput.files[0]);
+      }
+
       const settings = {
         headline: document.getElementById('home-headline').value.trim(),
         subheadline: document.getElementById('home-subheadline').value.trim(),
         description: document.getElementById('home-description').value.trim(),
-        image: document.getElementById('home-image').value.trim(),
+        image: imageValue,
         accountText: document.getElementById('home-account-text').value.trim() || 'My Account',
         badges: document.getElementById('home-badges').value.split(',').map(item => item.trim()).filter(Boolean)
       };

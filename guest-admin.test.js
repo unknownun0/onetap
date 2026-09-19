@@ -19,7 +19,8 @@ const {
   deactivateAccount,
   deleteAccount,
   getHomePageSettings,
-  setHomePageSettings
+  setHomePageSettings,
+  generateQrFallbackDataUrl
 } = require('./guest-admin.js');
 
 test('admin can edit the home page content, image, and product details', () => {
@@ -83,6 +84,13 @@ test('duplicate guest email is rejected', () => {
   assert.equal(result.error, 'Email already exists');
 });
 
+test('offline QR fallback generates a local data URL instead of relying on the remote service', () => {
+  const qr = generateQrFallbackDataUrl('https://example.com/profile#abc');
+
+  assert.match(qr, /^data:image\/svg\+xml/);
+  assert.ok(qr.length > 200);
+});
+
 test('admin can delete a guest invite link', () => {
   setStore('guests', []);
   setStore('accounts', []);
@@ -135,14 +143,17 @@ test('customer can save profile settings and keep them for their preview', () =>
     title: 'Brand Designer',
     tagline: 'Helping brands look sharper',
     accent: '#0f172a',
-    theme: 'dark'
+    theme: 'dark',
+    mode: 'local'
   });
 
   assert.equal(saved.name, 'Profile User');
   assert.equal(saved.title, 'Brand Designer');
   assert.equal(saved.theme, 'dark');
+  assert.equal(saved.mode, 'local');
   assert.equal(getCustomerProfile().tagline, 'Helping brands look sharper');
   assert.equal(getCustomerProfile().theme, 'dark');
+  assert.equal(getCustomerProfile().mode, 'local');
 });
 
 test('used invite shows the customer preview link instead of the original invitation', () => {
