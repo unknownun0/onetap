@@ -12,7 +12,10 @@ const {
   setCustomerSession,
   loginCustomer,
   saveCustomerProfile,
-  getCustomerProfile
+  getCustomerProfile,
+  listAccounts,
+  deactivateAccount,
+  deleteAccount
 } = require('./guest-admin.js');
 
 test('createGuestInvite adds a new guest with a token and sign-up URL', () => {
@@ -121,4 +124,26 @@ test('used invite shows the customer preview link instead of the original invita
   const updatedGuest = getGuestByToken(guest.token);
   assert.ok(updatedGuest.previewUrl.includes('profile.html#data='));
   assert.ok(!updatedGuest.previewUrl.includes('guest-signup.html?token='));
+});
+
+test('admin can deactivate and delete customer accounts', () => {
+  setStore('guests', []);
+  setStore('accounts', []);
+  setCustomerSession(null);
+
+  const guest = createGuestInvite({ name: 'Admin User', email: 'adminuser@example.com' });
+  const account = createGuestAccount({
+    guestToken: guest.token,
+    name: 'Admin User',
+    email: 'adminuser@example.com',
+    password: 'secret123'
+  });
+
+  const deactivated = deactivateAccount(account.id);
+  assert.equal(deactivated.status, 'inactive');
+  assert.equal(loginCustomer({ email: 'adminuser@example.com', password: 'secret123' }).ok, false);
+
+  const deleted = deleteAccount(account.id);
+  assert.equal(deleted, true);
+  assert.equal(listAccounts().length, 0);
 });

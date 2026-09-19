@@ -153,6 +153,34 @@ function listGuests() {
   return getStore('guests');
 }
 
+function listAccounts() {
+  return getStore('accounts');
+}
+
+function deactivateAccount(accountId) {
+  const accounts = getStore('accounts').map(item => item.id === accountId ? { ...item, status: 'inactive', updatedAt: new Date().toISOString() } : item);
+  setStore('accounts', accounts);
+
+  const session = getCustomerSession();
+  if (session && session.id === accountId) {
+    setCustomerSession(null);
+  }
+
+  return accounts.find(item => item.id === accountId) || null;
+}
+
+function deleteAccount(accountId) {
+  const accounts = getStore('accounts').filter(item => item.id !== accountId);
+  setStore('accounts', accounts);
+
+  const session = getCustomerSession();
+  if (session && session.id === accountId) {
+    setCustomerSession(null);
+  }
+
+  return true;
+}
+
 function createGuestAccount({ guestToken, name, email, password }) {
   const guest = getGuestByToken(guestToken);
   const cleanName = String(name || '').trim();
@@ -286,6 +314,10 @@ function loginCustomer({ email, password }) {
     return { ok: false, error: 'Invalid email or password.' };
   }
 
+  if (String(account.status || 'active') === 'inactive') {
+    return { ok: false, error: 'This account has been deactivated by the admin.' };
+  }
+
   const session = {
     id: account.id,
     name: account.name,
@@ -385,6 +417,9 @@ if (typeof module !== 'undefined') {
     createGuestAccount,
     getGuestByToken,
     listGuests,
+    listAccounts,
+    deactivateAccount,
+    deleteAccount,
     setStore,
     getStore,
     generateToken,

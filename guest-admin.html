@@ -90,6 +90,45 @@
       padding: 8px 10px;
       background: white;
     }
+    .admin-table-wrap {
+      overflow-x: auto;
+    }
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 640px;
+    }
+    .admin-table th,
+    .admin-table td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      vertical-align: middle;
+    }
+    .admin-table th {
+      color: var(--muted);
+      font-weight: 600;
+      background: #f8fafc;
+    }
+    .table-action-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .table-action-btn {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text);
+      padding: 7px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .table-action-btn--danger {
+      border-color: rgba(220, 38, 38, 0.2);
+      color: #b91c1c;
+    }
     .hidden {
       display: none !important;
     }
@@ -153,6 +192,24 @@
         <h2 class="section-heading">Recent invites</h2>
         <ul id="guest-list" class="guest-list"></ul>
       </section>
+
+      <section class="admin-panel fade-item">
+        <h2 class="section-heading">Customer accounts</h2>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="account-table-body"></tbody>
+          </table>
+        </div>
+      </section>
     </section>
   </div>
 
@@ -212,6 +269,56 @@
       });
     }
 
+    function renderAccountTable() {
+      const tbody = document.getElementById('account-table-body');
+      const accounts = listAccounts();
+      tbody.innerHTML = '';
+
+      if (!accounts.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="guest-meta">No customer accounts yet.</td></tr>';
+        return;
+      }
+
+      accounts.forEach((account) => {
+        const row = document.createElement('tr');
+        const statusLabel = (account.status || 'active') === 'inactive' ? 'Inactive' : 'Active';
+        row.innerHTML = `
+          <td>${account.name || 'Customer'}</td>
+          <td>${account.email || '—'}</td>
+          <td><span class="status-pill ${account.status === 'inactive' ? 'status-pill--used' : ''}">${statusLabel}</span></td>
+          <td>${new Date(account.createdAt || Date.now()).toLocaleDateString()}</td>
+          <td>
+            <div class="table-action-row">
+              <button class="table-action-btn" type="button" data-account-action="toggle" data-account-id="${account.id}">${account.status === 'inactive' ? 'Activate' : 'Deactivate'}</button>
+              <button class="table-action-btn table-action-btn--danger" type="button" data-account-action="delete" data-account-id="${account.id}">Delete</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      document.querySelectorAll('[data-account-action]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const accountId = button.getAttribute('data-account-id');
+          const action = button.getAttribute('data-account-action');
+
+          if (action === 'toggle') {
+            const account = listAccounts().find(item => item.id === accountId);
+            if (!account) return;
+            const updated = account.status === 'inactive' ? { ...account, status: 'active' } : { ...account, status: 'inactive' };
+            setStore('accounts', listAccounts().map(item => item.id === accountId ? updated : item));
+            renderAccountTable();
+            return;
+          }
+
+          if (action === 'delete') {
+            deleteAccount(accountId);
+            renderAccountTable();
+          }
+        });
+      });
+    }
+
     document.getElementById('admin-login-form').addEventListener('submit', (event) => {
       event.preventDefault();
       const result = loginAdmin({
@@ -227,6 +334,7 @@
       showDashboard(true);
       document.getElementById('admin-login-form').reset();
       renderGuestList();
+      renderAccountTable();
     });
 
     document.getElementById('logout-btn').addEventListener('click', () => {
@@ -259,6 +367,7 @@
     }
 
     renderGuestList();
+    renderAccountTable();
   </script>
 </body>
 </html>
