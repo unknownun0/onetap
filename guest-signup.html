@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guest signup</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page">
+    <section class="form-section fade-item">
+      <h1 class="form-title">Create your guest account</h1>
+      <p class="form-subtitle">Use the invite link from the admin to finish your account setup.</p>
+
+      <form id="guest-signup-form">
+        <label class="field">
+          <span>Full name</span>
+          <input type="text" id="signup-name" required>
+        </label>
+
+        <label class="field">
+          <span>Email</span>
+          <input type="email" id="signup-email" required>
+        </label>
+
+        <label class="field">
+          <span>Password</span>
+          <input type="password" id="signup-password" required>
+        </label>
+
+        <button type="submit" class="primary-cta">Create account</button>
+      </form>
+    </section>
+  </div>
+
+  <script src="guest-admin.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+
+    if (!token) {
+      alert('This invite link is invalid.');
+      window.location.href = 'guest-admin.html';
+    }
+
+    document.getElementById('guest-signup-form').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const result = createGuestAccount({
+        guestToken: token,
+        name: document.getElementById('signup-name').value,
+        email: document.getElementById('signup-email').value,
+        password: document.getElementById('signup-password').value
+      });
+
+      if (result.error) {
+        alert(result.error);
+        return;
+      }
+
+      alert('Account created successfully. Welcome!');
+      window.location.href = 'guest-admin.html';
+    });
+  </script>
+</body>
+</html>

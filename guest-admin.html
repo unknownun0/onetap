@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guest admin</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      background: #f8fafc;
+    }
+    .page {
+      max-width: 760px;
+    }
+    .admin-panel {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, .05);
+      margin-bottom: 22px;
+    }
+    .admin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .admin-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      background: #f8fafc;
+    }
+    .guest-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 12px;
+    }
+    .guest-item {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      background: white;
+    }
+    .guest-item strong { display: block; margin-bottom: 6px; }
+    .guest-meta { font-size: 13px; color: var(--muted); }
+    .qr-box {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 10px;
+      min-height: 150px;
+      border-radius: 12px;
+      background: #f8fafc;
+      border: 1px dashed var(--border);
+      overflow: hidden;
+    }
+    .qr-box img {
+      width: 180px;
+      height: 180px;
+      object-fit: contain;
+    }
+    .link-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 12px;
+    }
+    .link-row input {
+      flex: 1;
+    }
+    .status-pill {
+      display: inline-block;
+      background: rgba(37,99,235,.08);
+      color: var(--accent);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-pill--used {
+      background: rgba(22,163,74,.1);
+      color: #15803d;
+    }
+    .tiny-btn {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      background: white;
+    }
+    @media (max-width: 640px) {
+      .page { padding: 20px 14px 48px; }
+      .admin-panel { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="form-header fade-item">
+      <h1 class="form-title">Guest admin</h1>
+      <p class="form-subtitle">Create guest invites and generate QR codes that let new people create their account.</p>
+    </header>
+
+    <section class="admin-panel fade-item">
+      <h2 class="section-heading">Create guest invite</h2>
+      <form id="guest-form">
+        <div class="admin-grid">
+          <label class="field">
+            <span>Guest name</span>
+            <input id="guest-name" name="name" type="text" placeholder="Jane Doe" required>
+          </label>
+          <label class="field">
+            <span>Email</span>
+            <input id="guest-email" name="email" type="email" placeholder="jane@example.com" required>
+          </label>
+        </div>
+        <label class="field">
+          <span>Notes</span>
+          <input id="guest-notes" name="notes" type="text" placeholder="VIP customer, sales team...">
+        </label>
+        <button type="submit" class="primary-cta">Create invite</button>
+      </form>
+    </section>
+
+    <section class="admin-panel fade-item">
+      <h2 class="section-heading">Recent invites</h2>
+      <ul id="guest-list" class="guest-list"></ul>
+    </section>
+  </div>
+
+  <script src="guest-admin.js"></script>
+  <script>
+    function renderGuestList() {
+      const list = document.getElementById('guest-list');
+      const guests = listGuests();
+      list.innerHTML = '';
+
+      if (!guests.length) {
+        const empty = document.createElement('li');
+        empty.className = 'guest-item';
+        empty.innerHTML = '<strong>No invites yet</strong><div class="guest-meta">Create one to generate a QR link for signup.</div>';
+        list.appendChild(empty);
+        return;
+      }
+
+      guests.slice().reverse().forEach((guest) => {
+        const item = document.createElement('li');
+        item.className = 'guest-item';
+
+        const status = guest.status === 'used' ? 'Used' : 'Pending';
+        item.innerHTML = `
+          <strong>${guest.name}</strong>
+          <div class="guest-meta">${guest.email}</div>
+          <div class="guest-meta">${guest.notes || 'No notes'}</div>
+          <div style="margin-top:10px;">
+            <span class="status-pill ${guest.status === 'used' ? 'status-pill--used' : ''}">${status}</span>
+          </div>
+          <div class="qr-box">
+            <img src="${guest.qrUrl}" alt="QR code for ${guest.name}" />
+          </div>
+          <div class="link-row">
+            <input type="text" readonly value="${guest.signupUrl}" aria-label="Guest sign-up URL">
+            <button class="tiny-btn" type="button" data-copy="${guest.signupUrl}">Copy</button>
+          </div>
+        `;
+
+        item.querySelector('[data-copy]').addEventListener('click', () => {
+          navigator.clipboard.writeText(guest.signupUrl);
+          alert('Invite link copied');
+        });
+
+        list.appendChild(item);
+      });
+    }
+
+    document.getElementById('guest-form').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const result = createGuestInvite({
+        name: document.getElementById('guest-name').value,
+        email: document.getElementById('guest-email').value,
+        notes: document.getElementById('guest-notes').value
+      });
+
+      if (result.error) {
+        alert(result.error);
+        return;
+      }
+
+      form.reset();
+      renderGuestList();
+      alert('Guest invite created successfully');
+    });
+
+    renderGuestList();
+  </script>
+</body>
+</html>
