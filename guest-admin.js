@@ -88,6 +88,36 @@ function getHomePageSettings() {
   };
 }
 
+async function fetchJson(path, options = {}) {
+  if (typeof window === 'undefined' || typeof window.fetch !== 'function') {
+    return null;
+  }
+
+  try {
+    const response = await window.fetch(path, {
+      headers: { 'Content-Type': 'application/json' },
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
+      }
+    });
+
+    const text = await response.text();
+    if (!text) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(text);
+    } catch (error) {
+      return text;
+    }
+  } catch (error) {
+    return null;
+  }
+}
+
 function setHomePageSettings(settings = {}) {
   const current = getHomePageSettings();
   const next = {
@@ -95,6 +125,14 @@ function setHomePageSettings(settings = {}) {
     ...settings,
     badges: Array.isArray(settings.badges) ? settings.badges.map(item => String(item).trim()).filter(Boolean) : (current.badges || [])
   };
+
+  if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
+    window.fetch('/api/homepage', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(next)
+    }).catch(() => {});
+  }
 
   setStore('homePage', next);
   return next;
@@ -120,6 +158,120 @@ function generateToken() {
 
 function normalizeEmail(value) {
   return String(value || '').trim().toLowerCase();
+}
+
+function requestJson(path, options = {}) {
+  if (typeof window === 'undefined' || !window.fetch) {
+    return Promise.resolve(null);
+  }
+
+  return fetch(path, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    }
+  }).then(async (response) => {
+    const text = await response.text();
+    if (!text) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(text);
+    } catch (error) {
+      return text;
+    }
+  }).catch(() => null);
+}
+
+async function listGuestsRemote() {
+  const data = await requestJson('/api/guests');
+  return Array.isArray(data) ? data : [];
+}
+
+async function listAccountsRemote() {
+  const data = await requestJson('/api/accounts');
+  return Array.isArray(data) ? data : [];
+}
+
+async function getHomePageSettingsRemote() {
+  const data = await requestJson('/api/homepage');
+  if (!data || typeof data !== 'object') {
+    return getHomePageSettings();
+  }
+  return { ...DEFAULT_STORE.homePage, ...data };
+}
+
+async function setHomePageSettingsRemote(settings = {}) {
+  const payload = await requestJson('/api/homepage', {
+    method: 'PUT',
+    body: JSON.stringify(settings)
+  });
+
+  if (!payload || typeof payload !== 'object') {
+    return setHomePageSettings(settings);
+  }
+
+  return payload;
+}
+
+async function createGuestInviteRemote({ name, email, notes = '' }) {
+  const payload = await requestJson('/api/guests', {
+    method: 'POST',
+    body: JSON.stringify({ name, email, notes })
+  });
+
+  if (!payload || payload.error) {
+    return payload || { error: 'Unable to create invite right now.' };
+  }
+
+  return payload;
+}
+
+async function createGuestAccountRemote({ guestToken, name, email, password }) {
+  const payload = await requestJson('/api/accounts', {
+    method: 'POST',
+    body: JSON.stringify({ guestToken, name, email, password })
+  });
+
+  if (!payload || payload.error) {
+    return payload || { error: 'Unable to create account right now.' };
+  }
+
+  return payload;
+}
+
+async function deleteGuestInviteRemote(inviteId) {
+  const payload = await requestJson(`/api/guests/${inviteId}`, { method: 'DELETE' });
+  return payload !== null ? payload : deleteGuestInvite(inviteId);
+}
+
+async function loginCustomerRemote({ email, password }) {
+  const payload = await requestJson('/api/customers/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password })
+  });
+
+  if (!payload || payload.error) {
+    return payload || { ok: false, error: 'Unable to log in right now.' };
+  }
+
+  return payload;
+}
+
+async function saveCustomerProfileRemote(profile) {
+  const payload = await requestJson('/api/customers/profile', {
+    method: 'POST',
+    body: JSON.stringify(profile)
+  });
+
+  if (!payload || payload.error) {
+    return payload || { error: 'Unable to save profile right now.' };
+  }
+
+  return payload;
 }
 
 function encodeUrlData(value) {
@@ -249,6 +401,30 @@ function createGuestInvite({ name, email, notes = '' }) {
     return { error: 'Name and email are required' };
   }
 
+  if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
+    const payload = {
+      name: cleanName,
+      email: cleanEmail,
+      notes: String(notes || '')
+    };
+
+    const result = window.fetch('/api/guests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(async (response) => {
+      const data = await response.json().catch(() => null);
+      if (!data || data.error) {
+        return data || { error: 'Unable to create invite right now.' };
+      }
+      return data;
+    }).catch(() => null);
+
+    if (typeof result !== 'undefined') {
+      return result;
+    }
+  }
+
   const existingGuests = getStore('guests');
   const existingAccounts = getStore('accounts');
   const emailExists = [...existingGuests, ...existingAccounts].some(item => normalizeEmail(item.email) === cleanEmail);
@@ -283,9 +459,19 @@ function createGuestInvite({ name, email, notes = '' }) {
 }
 
 function getGuestByToken(token) {
-  const guest = getStore('guests').find(item => item.token === token) || null;
-  if (guest) {
-    return guest;
+  const localGuest = getStore('guests').find(item => item.token === token) || null;
+  if (localGuest) {
+    return localGuest;
+  }
+
+  if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
+    const list = window.__ONETAP_GUESTS || [];
+    if (list.length) {
+      const guest = list.find(item => item.token === token) || null;
+      if (guest) {
+        return guest;
+      }
+    }
   }
 
   if (!token || typeof window === 'undefined' || !window.location) {
@@ -328,16 +514,43 @@ function getUsedInviteRedirectUrl(token) {
 }
 
 function listGuests() {
+  if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
+    window.fetch('/api/guests')
+      .then(async (response) => {
+        const data = await response.json().catch(() => null);
+        if (Array.isArray(data)) {
+          window.__ONETAP_GUESTS = data;
+          setStore('guests', data);
+        }
+      })
+      .catch(() => {});
+  }
+
   return getStore('guests');
 }
 
 function deleteGuestInvite(inviteId) {
+  if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
+    window.fetch(`/api/guests/${encodeURIComponent(inviteId)}`, { method: 'DELETE' }).catch(() => {});
+  }
+
   const guests = getStore('guests').filter(item => item.id !== inviteId);
   setStore('guests', guests);
   return true;
 }
 
 function listAccounts() {
+  if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
+    window.fetch('/api/accounts')
+      .then(async (response) => {
+        const data = await response.json().catch(() => null);
+        if (Array.isArray(data)) {
+          setStore('accounts', data);
+        }
+      })
+      .catch(() => {});
+  }
+
   return getStore('accounts');
 }
 
@@ -373,6 +586,29 @@ function createGuestAccount({ guestToken, name, email, password }) {
 
   if (!guest) {
     return { error: 'Invalid guest token' };
+  }
+
+  if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
+    const payload = { guestToken, name: cleanName, email: cleanEmail, password: cleanPassword };
+    return window.fetch('/api/accounts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(async (response) => {
+      const data = await response.json().catch(() => null);
+      if (data && !data.error) {
+        setCustomerSession({
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          role: data.role,
+          loggedInAt: new Date().toISOString()
+        });
+      }
+      return data || { error: 'Unable to create account right now.' };
+    }).catch(() => {
+      return { error: 'Unable to create account right now.' };
+    });
   }
 
   if (guest.status === 'used') {
@@ -500,6 +736,22 @@ function loginCustomer({ email, password }) {
     return { ok: false, error: 'Email and password are required.' };
   }
 
+  if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
+    return window.fetch('/api/customers/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: cleanEmail, password: cleanPassword })
+    }).then(async (response) => {
+      const data = await response.json().catch(() => null);
+      if (!data || !data.ok) {
+        return data || { ok: false, error: 'Invalid email or password.' };
+      }
+
+      setCustomerSession(data.session);
+      return data;
+    }).catch(() => ({ ok: false, error: 'Invalid email or password.' }));
+  }
+
   const account = getStore('accounts').find(item => normalizeEmail(item.email) === cleanEmail && String(item.password || '') === cleanPassword);
   if (!account) {
     return { ok: false, error: 'Invalid email or password.' };
@@ -584,6 +836,14 @@ function saveCustomerProfile(profile) {
     updatedAt: new Date().toISOString()
   };
 
+  if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
+    window.fetch('/api/customers/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload, sessionId: session.id })
+    }).catch(() => {});
+  }
+
   const key = `onetap_customer_profile_${session.id}`;
   getStorage().setItem(key, JSON.stringify(payload));
 
@@ -650,6 +910,16 @@ if (typeof module !== 'undefined') {
     saveCustomerProfile,
     generateQrFallbackDataUrl,
     getQrDisplayUrl,
-    readFileAsDataUrl
+    readFileAsDataUrl,
+    requestJson,
+    listGuestsRemote,
+    listAccountsRemote,
+    getHomePageSettingsRemote,
+    setHomePageSettingsRemote,
+    createGuestInviteRemote,
+    createGuestAccountRemote,
+    deleteGuestInviteRemote,
+    loginCustomerRemote,
+    saveCustomerProfileRemote
   };
 }

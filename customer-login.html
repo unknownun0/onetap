@@ -38,9 +38,9 @@
       window.location.href = 'customer-account.html';
     }
 
-    document.getElementById('customer-login-form').addEventListener('submit', (event) => {
+    document.getElementById('customer-login-form').addEventListener('submit', async (event) => {
       event.preventDefault();
-      const result = loginCustomer({
+      const result = await loginCustomer({
         email: document.getElementById('customer-email').value,
         password: document.getElementById('customer-password').value
       });

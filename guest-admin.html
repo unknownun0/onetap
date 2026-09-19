@@ -488,15 +488,15 @@
       showDashboard(false);
     });
 
-    document.getElementById('guest-form').addEventListener('submit', (event) => {
+    document.getElementById('guest-form').addEventListener('submit', async (event) => {
       event.preventDefault();
-      const result = createGuestInvite({
+      const result = await createGuestInvite({
         name: document.getElementById('guest-name').value,
         email: document.getElementById('guest-email').value,
         notes: document.getElementById('guest-notes').value
       });
 
-      if (result.error) {
+      if (result && result.error) {
         alert(result.error);
         return;
       }

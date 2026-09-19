@@ -1,0 +1,43 @@
+{
+  "guests": [
+    {
+      "id": "id_rhfm6t06mu8k5l5l",
+      "name": "Other Device User",
+      "email": "devicecheck-20260919154422@example.com",
+      "notes": "cross-device check",
+      "token": "guest_1ag58x9e_mu8k5l5j",
+      "status": "used",
+      "createdAt": "2026-09-19T15:44:22.617Z",
+      "signupUrl": "http://localhost/guest-signup.html?token=guest_1ag58x9e_mu8k5l5j&invite=eyJ0b2tlbiI6Imd1ZXN0XzFhZzU4eDllX211OGs1bDVqIiwibmFtZSI6Ik90aGVyIERldmljZSBVc2VyIiwiZW1haWwiOiJkZXZpY2VjaGVjay0yMDI2MDkxOTE1NDQyMkBleGFtcGxlLmNvbSIsImNyZWF0ZWRBdCI6IjIwMjYtMDktMTlUMTU6NDQ6MjIuNjE1WiJ9",
+      "qrUrl": "https://api.qrserver.com/v1/create-qr-code/?size=220x220&format=png&data=http%3A%2F%2Flocalhost%2Fprofile.html%23data%3DeyJuYW1lIjoiT3RoZXIgRGV2aWNlIFVzZXIiLCJ0aXRsZSI6IiIsInRhZ2xpbmUiOiIiLCJhY2NlbnQiOiIjMjU2M0VCIiwiYXZhdGFyIjoiIiwid2Vic2l0ZSI6IiIsImVtYWlsIjoiZGV2aWNlY2hlY2stMjAyNjA5MTkxNTQ0MjJAZXhhbXBsZS5jb20iLCJ0aGVtZSI6ImxpZ2h0IiwibW9kZSI6InB1YmxpYyIsInBob25lcyI6W10sImVtYWlscyI6W10sImxpbmtzIjpbXSwiYWRkcmVzcyI6e319",
+      "usedAt": "2026-09-19T15:44:22.658Z",
+      "previewUrl": "http://localhost/profile.html#data=eyJuYW1lIjoiT3RoZXIgRGV2aWNlIFVzZXIiLCJ0aXRsZSI6IiIsInRhZ2xpbmUiOiIiLCJhY2NlbnQiOiIjMjU2M0VCIiwiYXZhdGFyIjoiIiwid2Vic2l0ZSI6IiIsImVtYWlsIjoiZGV2aWNlY2hlY2stMjAyNjA5MTkxNTQ0MjJAZXhhbXBsZS5jb20iLCJ0aGVtZSI6ImxpZ2h0IiwibW9kZSI6InB1YmxpYyIsInBob25lcyI6W10sImVtYWlscyI6W10sImxpbmtzIjpbXSwiYWRkcmVzcyI6e319"
+    }
+  ],
+  "accounts": [
+    {
+      "id": "id_sg0yg5nxmu8k5l6q",
+      "guestToken": "guest_1ag58x9e_mu8k5l5j",
+      "name": "Other Device User",
+      "email": "devicecheck-20260919154422@example.com",
+      "password": "devicepass123",
+      "role": "guest",
+      "createdAt": "2026-09-19T15:44:22.658Z",
+      "status": "active"
+    }
+  ],
+  "homePage": {
+    "headline": "Your Link.",
+    "subheadline": "One Tap.",
+    "description": "Custom NFC cards & keychains for your social, business, and brand.",
+    "image": "img/ONE TAP.png",
+    "badges": [
+      "ONE TAP",
+      "FACEBOOK",
+      "TIKTOK",
+      "LINKEDIN",
+      "ANY LINK"
+    ],
+    "accountText": "My Account"
+  }
+}

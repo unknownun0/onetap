@@ -37,25 +37,54 @@
 
   <script src="guest-admin.js"></script>
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
-    const invitingGuest = token ? getGuestByToken(token) : null;
+    async function loadInviteState() {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('token');
+      if (!token) {
+        alert('This invite link is invalid.');
+        window.location.href = 'customer-login.html';
+        return null;
+      }
 
-    if (!token || !invitingGuest) {
+      const guests = await requestJson('/api/guests');
+      const invitingGuest = Array.isArray(guests) ? guests.find(item => item.token === token) : null;
+
+      if (!invitingGuest) {
+        alert('This invite link is invalid.');
+        window.location.href = 'customer-login.html';
+        return null;
+      }
+
+      if (invitingGuest.status === 'used') {
+        const redirect = invitingGuest.previewUrl || getUsedInviteRedirectUrl(token);
+        alert('This invite has already been used. Redirecting to the customer preview page.');
+        window.location.href = redirect || 'customer-account.html';
+        return null;
+      }
+
+      return { token, invitingGuest };
+    }
+
+    let inviteState = null;
+
+    loadInviteState().then((state) => {
+      inviteState = state;
+    }).catch(() => {
       alert('This invite link is invalid.');
       window.location.href = 'customer-login.html';
-    }
+    });
 
-    if (invitingGuest && invitingGuest.status === 'used') {
-      const redirect = getUsedInviteRedirectUrl(token);
-      alert('This invite has already been used. Redirecting to the customer preview page.');
-      window.location.href = redirect || 'customer-account.html';
-    }
-
-    document.getElementById('guest-signup-form').addEventListener('submit', (event) => {
+    document.getElementById('guest-signup-form').addEventListener('submit', async (event) => {
       event.preventDefault();
-      const result = createGuestAccount({
-        guestToken: token,
+
+      if (!inviteState || !inviteState.token) {
+        alert('This invite link is invalid.');
+        window.location.href = 'customer-login.html';
+        return;
+      }
+
+      const result = await createGuestAccount({
+        guestToken: inviteState.token,
         name: document.getElementById('signup-name').value,
         email: document.getElementById('signup-email').value,
         password: document.getElementById('signup-password').value
