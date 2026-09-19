@@ -125,6 +125,16 @@ function createGuestAccount({ guestToken, name, email, password }) {
     return { error: 'Name, email and password are required' };
   }
 
+  if (normalizeEmail(guest.email) !== cleanEmail) {
+    return { error: 'This account must be created with the email from the admin invitation.' };
+  }
+
+  const existingAccounts = getStore('accounts');
+  const emailAlreadyUsed = existingAccounts.some(account => normalizeEmail(account.email) === cleanEmail);
+  if (emailAlreadyUsed) {
+    return { error: 'This email already has an account.' };
+  }
+
   const account = {
     id: generateId(),
     guestToken,
@@ -137,11 +147,45 @@ function createGuestAccount({ guestToken, name, email, password }) {
   };
 
   const guests = getStore('guests').map(item => item.token === guestToken ? { ...item, status: 'used', usedAt: new Date().toISOString() } : item);
-  const accounts = [...getStore('accounts'), account];
+  const accounts = [...existingAccounts, account];
 
   setStore('guests', guests);
   setStore('accounts', accounts);
   return account;
+}
+
+function getAdminSession() {
+  if (typeof window === 'undefined') return null;
+  try {
+    return JSON.parse(localStorage.getItem('onetap_admin_session') || 'null');
+  } catch (error) {
+    return null;
+  }
+}
+
+function setAdminSession(value) {
+  if (typeof window === 'undefined') return null;
+  localStorage.setItem('onetap_admin_session', JSON.stringify(value));
+  return value;
+}
+
+function loginAdmin({ username, password }) {
+  const cleanUser = String(username || '').trim().toLowerCase();
+  const cleanPass = String(password || '').trim();
+
+  if (cleanUser === 'admin' && cleanPass === 'admin123') {
+    const session = { username: 'admin', loggedInAt: new Date().toISOString() };
+    setAdminSession(session);
+    return { ok: true, session };
+  }
+
+  return { ok: false, error: 'Invalid admin credentials' };
+}
+
+function logoutAdmin() {
+  if (typeof window === 'undefined') return true;
+  localStorage.removeItem('onetap_admin_session');
+  return true;
 }
 
 if (typeof module !== 'undefined') {
@@ -154,6 +198,10 @@ if (typeof module !== 'undefined') {
     setStore,
     getStore,
     generateToken,
-    normalizeEmail
+    normalizeEmail,
+    getAdminSession,
+    setAdminSession,
+    loginAdmin,
+    logoutAdmin
   };
 }
