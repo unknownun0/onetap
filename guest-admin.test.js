@@ -5,6 +5,7 @@ const {
   createGuestInvite,
   createGuestAccount,
   getGuestByToken,
+  getUsedInviteRedirectUrl,
   listGuests,
   setStore,
   getStore,
@@ -145,6 +146,9 @@ test('used invite shows the customer preview link instead of the original invita
   const updatedGuest = getGuestByToken(guest.token);
   assert.ok(updatedGuest.previewUrl.includes('profile.html#data='));
   assert.ok(!updatedGuest.previewUrl.includes('guest-signup.html?token='));
+
+  const redirectUrl = getUsedInviteRedirectUrl(guest.token);
+  assert.ok(redirectUrl.includes('profile.html#data='));
 });
 
 test('admin can deactivate and delete customer accounts', () => {

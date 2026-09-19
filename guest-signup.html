@@ -47,8 +47,9 @@
     }
 
     if (invitingGuest && invitingGuest.status === 'used') {
-      alert('This invite has already been used. Redirecting to your account.');
-      window.location.href = 'customer-account.html';
+      const redirect = getUsedInviteRedirectUrl(token);
+      alert('This invite has already been used. Redirecting to the customer preview page.');
+      window.location.href = redirect || 'customer-account.html';
     }
 
     document.getElementById('guest-signup-form').addEventListener('submit', (event) => {

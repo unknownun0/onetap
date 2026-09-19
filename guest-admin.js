@@ -180,6 +180,19 @@ function getGuestByToken(token) {
   return getStore('guests').find(guest => guest.token === token) || null;
 }
 
+function getUsedInviteRedirectUrl(token) {
+  const guest = getGuestByToken(token);
+  if (!guest || guest.status !== 'used') {
+    return null;
+  }
+
+  return guest.previewUrl || `${getBaseUrl()}profile.html#data=${encodeProfileData({
+    name: guest.name,
+    email: guest.email,
+    accent: '#2563EB'
+  })}`;
+}
+
 function listGuests() {
   return getStore('guests');
 }
@@ -447,6 +460,7 @@ if (typeof module !== 'undefined') {
     createGuestInvite,
     createGuestAccount,
     getGuestByToken,
+    getUsedInviteRedirectUrl,
     listGuests,
     listAccounts,
     deactivateAccount,
