@@ -183,6 +183,9 @@
         item.className = 'guest-item';
 
         const status = guest.status === 'used' ? 'Used' : 'Pending';
+        const displayLink = guest.status === 'used' ? (guest.previewUrl || guest.signupUrl) : guest.signupUrl;
+        const displayQr = guest.status === 'used' ? (guest.previewUrl ? `https://api.qrserver.com/v1/create-qr-code/?size=220x220&format=png&data=${encodeURIComponent(guest.previewUrl)}` : guest.qrUrl) : guest.qrUrl;
+
         item.innerHTML = `
           <strong>${guest.name}</strong>
           <div class="guest-meta">${guest.email}</div>
@@ -191,18 +194,18 @@
             <span class="status-pill ${guest.status === 'used' ? 'status-pill--used' : ''}">${status}</span>
           </div>
           <div class="qr-box">
-            <img src="${guest.qrUrl}" alt="QR code for ${guest.name}" />
+            <img src="${displayQr}" alt="QR code for ${guest.name}" />
           </div>
           <div class="link-row">
-            <input type="text" readonly value="${guest.signupUrl}" aria-label="Guest sign-up URL">
-            <button class="tiny-btn" type="button" data-copy="${guest.signupUrl}">Copy</button>
+            <input type="text" readonly value="${displayLink}" aria-label="${guest.status === 'used' ? 'Customer preview URL' : 'Guest sign-up URL'}">
+            <button class="tiny-btn" type="button" data-copy="${displayLink}">Copy</button>
           </div>
         `;
 
         const copyBtn = item.querySelector('[data-copy]');
         copyBtn.addEventListener('click', async () => {
-          await navigator.clipboard.writeText(guest.signupUrl);
-          alert('Invite link copied');
+          await navigator.clipboard.writeText(displayLink);
+          alert(guest.status === 'used' ? 'Preview link copied' : 'Invite link copied');
         });
 
         list.appendChild(item);

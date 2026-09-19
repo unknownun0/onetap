@@ -104,3 +104,21 @@ test('customer can save profile settings and keep them for their preview', () =>
   assert.equal(saved.title, 'Brand Designer');
   assert.equal(getCustomerProfile().tagline, 'Helping brands look sharper');
 });
+
+test('used invite shows the customer preview link instead of the original invitation', () => {
+  setStore('guests', []);
+  setStore('accounts', []);
+  setCustomerSession(null);
+
+  const guest = createGuestInvite({ name: 'Preview User', email: 'preview@example.com' });
+  createGuestAccount({
+    guestToken: guest.token,
+    name: 'Preview User',
+    email: 'preview@example.com',
+    password: 'secret123'
+  });
+
+  const updatedGuest = getGuestByToken(guest.token);
+  assert.ok(updatedGuest.previewUrl.includes('profile.html#data='));
+  assert.ok(!updatedGuest.previewUrl.includes('guest-signup.html?token='));
+});

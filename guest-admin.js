@@ -77,6 +77,39 @@ function normalizeEmail(value) {
   return String(value || '').trim().toLowerCase();
 }
 
+function encodeProfileData(profile) {
+  const json = JSON.stringify(profile || {});
+
+  if (typeof btoa === 'function') {
+    const encoded = btoa(unescape(encodeURIComponent(json)));
+    return encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  if (typeof Buffer !== 'undefined') {
+    return Buffer.from(json, 'utf8').toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  return encodeURIComponent(json);
+}
+
+function buildGuestPreviewUrl(profile = {}) {
+  const payload = {
+    name: String(profile.name || 'Customer').trim() || 'Customer',
+    title: String(profile.title || '').trim(),
+    tagline: String(profile.tagline || '').trim(),
+    accent: String(profile.accent || '#2563EB').trim() || '#2563EB',
+    avatar: String(profile.avatar || '').trim(),
+    website: String(profile.website || '').trim(),
+    email: String(profile.email || '').trim(),
+    phones: Array.isArray(profile.phones) ? profile.phones : [],
+    emails: Array.isArray(profile.emails) ? profile.emails : [],
+    links: Array.isArray(profile.links) ? profile.links : [],
+    address: profile.address || {}
+  };
+
+  return `${getBaseUrl()}profile.html#data=${encodeProfileData(payload)}`;
+}
+
 function createGuestInvite({ name, email, notes = '' }) {
   const cleanName = String(name || '').trim();
   const cleanEmail = normalizeEmail(email);
@@ -159,7 +192,19 @@ function createGuestAccount({ guestToken, name, email, password }) {
     status: 'active'
   };
 
-  const guests = getStore('guests').map(item => item.token === guestToken ? { ...item, status: 'used', usedAt: new Date().toISOString() } : item);
+  const previewUrl = buildGuestPreviewUrl({
+    name: cleanName,
+    email: cleanEmail,
+    accent: '#2563EB'
+  });
+
+  const guests = getStore('guests').map(item => item.token === guestToken ? {
+    ...item,
+    status: 'used',
+    usedAt: new Date().toISOString(),
+    previewUrl,
+    qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=220x220&format=png&data=${encodeURIComponent(previewUrl)}`
+  } : item);
   const accounts = [...existingAccounts, account];
 
   setStore('guests', guests);
@@ -301,7 +346,29 @@ function saveCustomerProfile(profile) {
   getStorage().setItem(key, JSON.stringify(payload));
 
   const accounts = getStore('accounts').map(item => item.id === session.id ? { ...item, name: payload.name } : item);
+  const guests = getStore('guests').map(item => {
+    if (normalizeEmail(item.email) !== normalizeEmail(session.email)) return item;
+    const previewUrl = buildGuestPreviewUrl({
+      name: payload.name,
+      title: payload.title,
+      tagline: payload.tagline,
+      accent: payload.accent,
+      avatar: payload.avatar,
+      website: payload.website,
+      email: session.email
+    });
+
+    return {
+      ...item,
+      name: payload.name,
+      status: item.status === 'used' ? 'used' : item.status,
+      previewUrl,
+      qrUrl: `https://api.qrserver.com/v1/create-qr-code/?size=220x220&format=png&data=${encodeURIComponent(previewUrl)}`
+    };
+  });
+
   setStore('accounts', accounts);
+  setStore('guests', guests);
   setCustomerSession({
     ...session,
     name: payload.name,
