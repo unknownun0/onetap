@@ -7,6 +7,7 @@ const {
   getGuestByToken,
   getUsedInviteRedirectUrl,
   listGuests,
+  deleteGuestInvite,
   setStore,
   getStore,
   getCustomerSession,
@@ -80,6 +81,17 @@ test('duplicate guest email is rejected', () => {
   const result = createGuestInvite({ name: 'Beta', email: 'alpha@example.com' });
 
   assert.equal(result.error, 'Email already exists');
+});
+
+test('admin can delete a guest invite link', () => {
+  setStore('guests', []);
+  setStore('accounts', []);
+
+  const guest = createGuestInvite({ name: 'Delete Me', email: 'delete@example.com' });
+  const removed = deleteGuestInvite(guest.id);
+
+  assert.equal(removed, true);
+  assert.equal(listGuests().length, 0);
 });
 
 test('customer can sign in and keep a session for their account page', () => {

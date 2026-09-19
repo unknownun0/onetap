@@ -36,13 +36,17 @@
       margin: 0;
       padding: 0;
       display: grid;
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
     }
     .guest-item {
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 12px;
+      padding: 14px;
       background: white;
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
     }
     .guest-item strong { display: block; margin-bottom: 6px; }
     .guest-meta { font-size: 13px; color: var(--muted); }
@@ -66,10 +70,17 @@
       display: flex;
       gap: 8px;
       align-items: center;
-      margin-top: 12px;
+      margin-top: auto;
+      padding-top: 12px;
     }
     .link-row input {
       flex: 1;
+      min-width: 0;
+    }
+    .guest-item-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 12px;
     }
     .status-pill {
       display: inline-block;
@@ -159,11 +170,27 @@
     .hidden {
       display: none !important;
     }
+    @media (max-width: 980px) {
+      .guest-list {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+    }
+
     @media (max-width: 640px) {
       .page { padding: 20px 14px 48px; }
       .admin-panel { padding: 16px; }
       .admin-tabs { gap: 6px; }
       .tab-btn { padding: 8px 10px; font-size: 12px; }
+      .guest-list {
+        grid-template-columns: 1fr;
+      }
+      .link-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .tiny-btn, .table-action-btn {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -351,12 +378,21 @@
             <input type="text" readonly value="${displayLink}" aria-label="${guest.status === 'used' ? 'Customer preview URL' : 'Guest sign-up URL'}">
             <button class="tiny-btn" type="button" data-copy="${displayLink}">Copy</button>
           </div>
+          <div class="guest-item-actions">
+            <button class="table-action-btn table-action-btn--danger" type="button" data-delete-invite="${guest.id}">Delete link</button>
+          </div>
         `;
 
         const copyBtn = item.querySelector('[data-copy]');
         copyBtn.addEventListener('click', async () => {
           await navigator.clipboard.writeText(displayLink);
           alert(guest.status === 'used' ? 'Preview link copied' : 'Invite link copied');
+        });
+
+        const deleteBtn = item.querySelector('[data-delete-invite]');
+        deleteBtn.addEventListener('click', () => {
+          deleteGuestInvite(guest.id);
+          renderGuestList();
         });
 
         list.appendChild(item);

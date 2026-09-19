@@ -197,6 +197,12 @@ function listGuests() {
   return getStore('guests');
 }
 
+function deleteGuestInvite(inviteId) {
+  const guests = getStore('guests').filter(item => item.id !== inviteId);
+  setStore('guests', guests);
+  return true;
+}
+
 function listAccounts() {
   return getStore('accounts');
 }
@@ -462,6 +468,7 @@ if (typeof module !== 'undefined') {
     getGuestByToken,
     getUsedInviteRedirectUrl,
     listGuests,
+    deleteGuestInvite,
     listAccounts,
     deactivateAccount,
     deleteAccount,
