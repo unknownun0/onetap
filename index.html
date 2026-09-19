@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Create your profile</title>
+<meta name="description" content="Create your link-in-bio and digital business card.">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="page">
+  <header class="form-header fade-item">
+    <h1 class="form-title">Create your profile</h1>
+    <p class="form-subtitle">Fill this in, then preview how it looks before you share it.</p>
+  </header>
+
+  <form id="create-form" novalidate>
+
+    <section class="form-section fade-item">
+      <h2 class="section-heading">Basic info</h2>
+
+      <label class="field">
+        <span>Full name</span>
+        <input type="text" id="f-name" name="name" required placeholder="Earl John Gomez" autocomplete="name">
+      </label>
+
+      <label class="field">
+        <span>Job title</span>
+        <input type="text" id="f-title" name="title" placeholder="Graphic Designer">
+      </label>
+
+      <label class="field">
+        <span>Tagline <span class="optional">(optional)</span></span>
+        <input type="text" id="f-tagline" name="tagline" placeholder="A one-line intro">
+      </label>
+
+      <label class="field">
+        <span>Avatar image URL <span class="optional">(optional — shows initials if left blank)</span></span>
+        <input type="url" id="f-avatar" name="avatar" placeholder="https://…">
+      </label>
+
+      <label class="field field--color">
+        <span>Accent color</span>
+        <input type="color" id="f-accent" name="accent" value="#2563EB">
+      </label>
+    </section>
+
+    <section class="form-section fade-item">
+      <h2 class="section-heading">Contact</h2>
+      <p class="section-hint">Used for the "Save me in your contacts" card and the vCard download.</p>
+
+      <div id="phone-rows" class="repeat-rows"></div>
+      <button type="button" class="add-row-btn" data-add="phone">+ Add phone number</button>
+
+      <div id="email-rows" class="repeat-rows"></div>
+      <button type="button" class="add-row-btn" data-add="email">+ Add email</button>
+
+      <div class="field-row">
+        <label class="field">
+          <span>Address label <span class="optional">(optional)</span></span>
+          <input type="text" id="f-addr-label" placeholder="Studio">
+        </label>
+      </div>
+      <div class="field-row">
+        <label class="field">
+          <span>Street</span>
+          <input type="text" id="f-addr-street">
+        </label>
+        <label class="field">
+          <span>City</span>
+          <input type="text" id="f-addr-city">
+        </label>
+      </div>
+      <label class="field">
+        <span>Country</span>
+        <input type="text" id="f-addr-country">
+      </label>
+    </section>
+
+    <section class="form-section fade-item">
+      <h2 class="section-heading">Follow me</h2>
+      <p class="section-hint">Add links to your website or social profiles.</p>
+      <div id="link-rows" class="repeat-rows"></div>
+      <button type="button" class="add-row-btn" data-add="link">+ Add link</button>
+    </section>
+
+    <button type="submit" class="primary-cta fade-item">Preview profile</button>
+    <button type="button" id="sample-btn" class="secondary-cta fade-item">Load a sample profile</button>
+  </form>
+</div>
+
+<script src="app.js"></script>
+<script>
+/* Row templates for repeatable fields. Kept separate from app.js
+   because these only apply to the create form. */
+
+const LINK_TYPES = ['website','email','phone','sms','whatsapp','facebook','instagram','tiktok','youtube','x','linkedin','spotify','github'];
+
+function addRow(container, fields) {
+  const row = document.createElement('div');
+  row.className = 'field-row repeat-row';
+  fields.forEach(f => row.appendChild(f));
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'remove-row-btn';
+  removeBtn.setAttribute('aria-label', 'Remove this entry');
+  removeBtn.textContent = '×';
+  removeBtn.addEventListener('click', () => row.remove());
+  row.appendChild(removeBtn);
+  container.appendChild(row);
+  return row;
+}
+
+function textField(placeholder, value) {
+  const label = document.createElement('label');
+  label.className = 'field field--inline';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.placeholder = placeholder;
+  if (value) input.value = value;
+  label.appendChild(input);
+  return { el: label, input };
+}
+
+function addPhoneRow(label, number) {
+  const labelField = textField('Label (e.g. Mobile)', label);
+  const numberField = textField('Phone number', number);
+  numberField.input.type = 'tel';
+  const row = addRow(document.getElementById('phone-rows'), [labelField.el, numberField.el]);
+  row.dataset.labelInput = '';
+  row._label = labelField.input;
+  row._value = numberField.input;
+}
+
+function addEmailRow(label, address) {
+  const labelField = textField('Label (e.g. Work)', label);
+  const addrField = textField('Email address', address);
+  addrField.input.type = 'email';
+  const row = addRow(document.getElementById('email-rows'), [labelField.el, addrField.el]);
+  row._label = labelField.input;
+  row._value = addrField.input;
+}
+
+function addLinkRow(type, label, value) {
+  const select = document.createElement('select');
+  select.className = 'field--inline';
+  LINK_TYPES.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t;
+    opt.textContent = t[0].toUpperCase() + t.slice(1);
+    if (t === type) opt.selected = true;
+    select.appendChild(opt);
+  });
+  const selectLabel = document.createElement('label');
+  selectLabel.className = 'field field--inline';
+  selectLabel.appendChild(select);
+
+  const labelField = textField('Label shown to visitors', label);
+  const valueField = textField('URL, handle or number', value);
+
+  const row = addRow(document.getElementById('link-rows'), [selectLabel, labelField.el, valueField.el]);
+  row._type = select;
+  row._label = labelField.input;
+  row._value = valueField.input;
+}
+
+document.querySelectorAll('[data-add]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.dataset.add === 'phone') addPhoneRow('Mobile', '');
+    if (btn.dataset.add === 'email') addEmailRow('Work', '');
+    if (btn.dataset.add === 'link') addLinkRow('website', 'Website', '');
+  });
+});
+
+function collectRows(containerId) {
+  return Array.from(document.getElementById(containerId).children).map(row => ({
+    label: row._label.value.trim(),
+    value: row._value ? row._value.value.trim() : ''
+  })).filter(r => r.value);
+}
+
+function buildProfileFromForm() {
+  const phones = collectRows('phone-rows').map(r => ({ label: r.label || 'Mobile', number: r.value }));
+  const emails = collectRows('email-rows').map(r => ({ label: r.label || 'Email', address: r.value }));
+  const links = Array.from(document.getElementById('link-rows').children).map(row => ({
+    type: row._type.value,
+    label: row._label.value.trim() || row._type.value,
+    value: row._value.value.trim()
+  })).filter(l => l.value);
+
+  const groups = [];
+  if (links.length) groups.push({ title: 'Follow Me', links });
+
+  return {
+    name: document.getElementById('f-name').value.trim(),
+    title: document.getElementById('f-title').value.trim(),
+    tagline: document.getElementById('f-tagline').value.trim(),
+    avatar: document.getElementById('f-avatar').value.trim(),
+    accent: document.getElementById('f-accent').value,
+    phones,
+    emails,
+    address: {
+      label: document.getElementById('f-addr-label').value.trim(),
+      street: document.getElementById('f-addr-street').value.trim(),
+      city: document.getElementById('f-addr-city').value.trim(),
+      country: document.getElementById('f-addr-country').value.trim()
+    },
+    groups
+  };
+}
+
+document.getElementById('create-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) {
+    document.getElementById('f-name').focus();
+    return;
+  }
+  const profile = buildProfileFromForm();
+  location.href = '/preview.html#data=' + encodeProfile(profile);
+});
+
+document.getElementById('sample-btn').addEventListener('click', () => {
+  document.getElementById('f-name').value = 'John B.';
+  document.getElementById('f-title').value = 'Graphic Designer';
+  document.getElementById('f-tagline').value = 'Making brands look good since 2015';
+  document.getElementById('f-avatar').value = '';
+  document.getElementById('f-accent').value = '#2563EB';
+  document.getElementById('phone-rows').innerHTML = '';
+  document.getElementById('email-rows').innerHTML = '';
+  document.getElementById('link-rows').innerHTML = '';
+  addPhoneRow('Mobile', '+1 555 010 2200');
+  addEmailRow('Work', 'hello@johnb.design');
+  document.getElementById('f-addr-street').value = '';
+  document.getElementById('f-addr-city').value = 'Austin, TX';
+  document.getElementById('f-addr-country').value = 'USA';
+  addLinkRow('website', 'Portfolio', 'johnb.design');
+  addLinkRow('instagram', 'Instagram', 'johnb.design');
+  addLinkRow('facebook', 'Facebook', 'johnb.design');
+});
+
+/* Pre-fill the form if we arrived here from "Edit" on the preview page */
+const existing = getProfileFromHash();
+if (existing) {
+  document.getElementById('f-name').value = existing.name || '';
+  document.getElementById('f-title').value = existing.title || '';
+  document.getElementById('f-tagline').value = existing.tagline || '';
+  document.getElementById('f-avatar').value = existing.avatar || '';
+  document.getElementById('f-accent').value = existing.accent || '#2563EB';
+  (existing.phones || []).forEach(p => addPhoneRow(p.label, p.number));
+  (existing.emails || []).forEach(e => addEmailRow(e.label, e.address));
+  if (existing.address) {
+    document.getElementById('f-addr-label').value = existing.address.label || '';
+    document.getElementById('f-addr-street').value = existing.address.street || '';
+    document.getElementById('f-addr-city').value = existing.address.city || '';
+    document.getElementById('f-addr-country').value = existing.address.country || '';
+  }
+  (existing.groups || []).forEach(g => (g.links || []).forEach(l => addLinkRow(l.type, l.label, l.value)));
+}
+
+/* Always start with one empty row of each so the form isn't blank */
+if (!existing) {
+  addPhoneRow('Mobile', '');
+  addEmailRow('Work', '');
+  addLinkRow('website', 'Website', '');
+}
+</script>
+</body>
+</html>

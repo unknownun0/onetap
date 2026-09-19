@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profile</title>
+<meta name="description" content="A link-in-bio and digital business card.">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="page">
+  <div id="profile-root"></div>
+</div>
+
+<script src="app.js"></script>
+<script>
+const profile = getProfileFromHash();
+const root = document.getElementById('profile-root');
+
+if (!profile) {
+  const empty = document.createElement('div');
+  empty.className = 'empty-state';
+  const p = document.createElement('p');
+  p.textContent = "This profile link isn't valid or has expired.";
+  const a = document.createElement('a');
+  a.href = '/index.html';
+  a.textContent = 'Create your own profile';
+  empty.appendChild(p);
+  empty.appendChild(a);
+  root.appendChild(empty);
+} else {
+  renderProfile(profile, root, {
+    shareUrl: location.href,
+    onOpenContactSheet: (p) => {
+      const dialog = buildContactSheet(p);
+      dialog.showModal();
+    }
+  });
+}
+</script>
+</body>
+</html>

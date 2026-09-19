@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preview your profile</title>
+<meta name="description" content="Preview how your profile will look before sharing it.">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="page">
+  <div class="preview-banner fade-item" id="banner" hidden>
+    <span>This is a preview — it's not live yet.</span>
+    <div class="preview-actions">
+      <button type="button" class="pill-btn" id="edit-btn">Edit</button>
+      <button type="button" class="pill-btn pill-btn--accent" id="publish-btn">Get live link</button>
+    </div>
+  </div>
+  <div id="profile-root"></div>
+</div>
+
+<script src="app.js"></script>
+<script>
+const profile = getProfileFromHash();
+const root = document.getElementById('profile-root');
+
+if (!profile) {
+  root.innerHTML = ''; // static shell only
+  const empty = document.createElement('div');
+  empty.className = 'empty-state';
+  const p = document.createElement('p');
+  p.textContent = "There's nothing to preview yet.";
+  const a = document.createElement('a');
+  a.href = '/index.html';
+  a.textContent = 'Go back and create a profile';
+  empty.appendChild(p);
+  empty.appendChild(a);
+  root.appendChild(empty);
+} else {
+  document.getElementById('banner').hidden = false;
+
+  renderProfile(profile, root, {
+    shareUrl: profileUrl(profile, 'profile.html'),
+    onOpenContactSheet: (p) => {
+      const dialog = buildContactSheet(p);
+      dialog.showModal();
+    }
+  });
+
+  document.getElementById('edit-btn').addEventListener('click', () => {
+    location.href = '/index.html#data=' + encodeProfile(profile);
+  });
+
+  document.getElementById('publish-btn').addEventListener('click', () => {
+    location.href = '/profile.html#data=' + encodeProfile(profile);
+  });
+}
+</script>
+</body>
+</html>
