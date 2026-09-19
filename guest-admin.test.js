@@ -172,6 +172,40 @@ test('customer can save profile settings and keep them for their preview', () =>
   assert.equal(getCustomerProfile().avatar, 'https://example.com/avatar.png');
 });
 
+test('guest invite stays valid on another device when the QR URL carries the invite payload', () => {
+  setStore('guests', []);
+  setStore('accounts', []);
+
+  const guest = createGuestInvite({ name: 'Remote User', email: 'remote@example.com' });
+  const originalWindow = globalThis.window;
+  const originalLocation = globalThis.window ? globalThis.window.location : undefined;
+
+  globalThis.window = {
+    location: new URL(guest.signupUrl)
+  };
+
+  setStore('guests', []);
+
+  const lookup = getGuestByToken(guest.token);
+  assert.ok(lookup);
+  assert.equal(lookup.email, 'remote@example.com');
+  assert.equal(lookup.status, 'pending');
+
+  const account = createGuestAccount({
+    guestToken: guest.token,
+    name: 'Remote User',
+    email: 'remote@example.com',
+    password: 'secure123'
+  });
+
+  assert.equal(account.email, 'remote@example.com');
+
+  globalThis.window = originalWindow;
+  if (originalLocation) {
+    globalThis.window.location = originalLocation;
+  }
+});
+
 test('used invite shows the customer preview link instead of the original invitation', () => {
   setStore('guests', []);
   setStore('accounts', []);

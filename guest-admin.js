@@ -122,6 +122,47 @@ function normalizeEmail(value) {
   return String(value || '').trim().toLowerCase();
 }
 
+function encodeUrlData(value) {
+  const json = JSON.stringify(value || {});
+
+  if (typeof btoa === 'function') {
+    const encoded = btoa(unescape(encodeURIComponent(json)));
+    return encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  if (typeof Buffer !== 'undefined') {
+    return Buffer.from(json, 'utf8').toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  return encodeURIComponent(json);
+}
+
+function decodeUrlData(value) {
+  if (!value) {
+    return null;
+  }
+
+  let source = String(value);
+
+  try {
+    if (typeof atob === 'function') {
+      const normalized = source.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+      source = decodeURIComponent(escape(atob(padded)));
+    } else if (typeof Buffer !== 'undefined') {
+      source = Buffer.from(source.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8');
+    }
+
+    return JSON.parse(source);
+  } catch (error) {
+    try {
+      return JSON.parse(decodeURIComponent(source));
+    } catch (decodeError) {
+      return null;
+    }
+  }
+}
+
 function encodeProfileData(profile) {
   const json = JSON.stringify(profile || {});
 
@@ -217,7 +258,13 @@ function createGuestInvite({ name, email, notes = '' }) {
   }
 
   const token = generateToken();
-  const signupUrl = `${getBaseUrl()}guest-signup.html?token=${encodeURIComponent(token)}`;
+  const invitePayload = encodeUrlData({
+    token,
+    name: cleanName,
+    email: cleanEmail,
+    createdAt: new Date().toISOString()
+  });
+  const signupUrl = `${getBaseUrl()}guest-signup.html?token=${encodeURIComponent(token)}&invite=${encodeURIComponent(invitePayload)}`;
   const invite = {
     id: generateId(),
     name: cleanName,
@@ -236,7 +283,35 @@ function createGuestInvite({ name, email, notes = '' }) {
 }
 
 function getGuestByToken(token) {
-  return getStore('guests').find(guest => guest.token === token) || null;
+  const guest = getStore('guests').find(item => item.token === token) || null;
+  if (guest) {
+    return guest;
+  }
+
+  if (!token || typeof window === 'undefined' || !window.location) {
+    return null;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const urlToken = params.get('token');
+  if (!urlToken || urlToken !== token) {
+    return null;
+  }
+
+  const payload = decodeUrlData(params.get('invite'));
+  if (!payload || payload.token !== token) {
+    return null;
+  }
+
+  return {
+    id: generateId(),
+    name: String(payload.name || '').trim() || 'Guest',
+    email: String(payload.email || '').trim(),
+    token: payload.token,
+    status: 'pending',
+    createdAt: payload.createdAt || new Date().toISOString(),
+    signupUrl: `${window.location.origin}${window.location.pathname}?token=${encodeURIComponent(token)}&invite=${encodeURIComponent(params.get('invite') || '')}`
+  };
 }
 
 function getUsedInviteRedirectUrl(token) {

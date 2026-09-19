@@ -16,8 +16,72 @@
       background: #fff;
       border: 1px solid var(--border);
       border-radius: 18px;
-      padding: 24px;
       box-shadow: 0 14px 30px rgba(15, 23, 42, 0.05);
+      overflow: hidden;
+    }
+    .account-summary {
+      width: 100%;
+      background: linear-gradient(135deg, #0f172a, #1d4ed8);
+      color: white;
+      border: none;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      text-align: left;
+      cursor: pointer;
+    }
+    .account-summary-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .account-summary-eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
+    .account-summary-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    .account-summary-note {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+    .account-mini-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .account-mini-status .status-pill {
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .account-toggle-caret {
+      display: inline-flex;
+      width: 26px;
+      height: 26px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      transition: transform 0.2s ease;
+      font-size: 18px;
+    }
+    .account-card.is-open .account-toggle-caret {
+      transform: rotate(180deg);
+    }
+    .account-details {
+      padding: 18px 20px 20px;
+      display: none;
+    }
+    .account-card.is-open .account-details {
+      display: block;
     }
     .account-row {
       display: flex;
@@ -36,6 +100,7 @@
     .account-value {
       font-weight: 600;
       text-align: right;
+      word-break: break-word;
     }
     .account-actions {
       display: flex;
@@ -51,27 +116,41 @@
       <h1 class="form-title">My account</h1>
       <p class="form-subtitle">This is your customer portal after registration.</p>
 
-      <div id="account-card" class="account-card">
-        <div class="account-row">
-          <span class="account-label">Name</span>
-          <span id="acct-name" class="account-value">—</span>
-        </div>
-        <div class="account-row">
-          <span class="account-label">Email</span>
-          <span id="acct-email" class="account-value">—</span>
-        </div>
-        <div class="account-row">
-          <span class="account-label">Role</span>
-          <span id="acct-role" class="account-value">—</span>
-        </div>
-        <div class="account-row">
-          <span class="account-label">Status</span>
-          <span id="acct-status" class="account-value">Active</span>
-        </div>
+      <div id="account-card" class="account-card is-open">
+        <button type="button" id="account-summary-toggle" class="account-summary" aria-expanded="true" aria-controls="account-details">
+          <div class="account-summary-text">
+            <span class="account-summary-eyebrow">My account</span>
+            <span id="acct-name-summary" class="account-summary-name">Customer</span>
+            <span class="account-summary-note">This is your customer portal after registration.</span>
+          </div>
+          <div class="account-mini-status">
+            <span id="acct-status" class="status-pill">Active</span>
+            <span class="account-toggle-caret">▾</span>
+          </div>
+        </button>
 
-        <div class="account-actions">
-          <button type="button" id="logout-customer" class="secondary-cta">Logout</button>
-          <a href="index.html" class="primary-cta" style="display:inline-block; text-align:center; text-decoration:none;">Back to home</a>
+        <div id="account-details" class="account-details">
+          <div class="account-row">
+            <span class="account-label">Name</span>
+            <span id="acct-name" class="account-value">—</span>
+          </div>
+          <div class="account-row">
+            <span class="account-label">Email</span>
+            <span id="acct-email" class="account-value">—</span>
+          </div>
+          <div class="account-row">
+            <span class="account-label">Role</span>
+            <span id="acct-role" class="account-value">—</span>
+          </div>
+          <div class="account-row">
+            <span class="account-label">Status</span>
+            <span id="acct-status-detail" class="account-value">Active</span>
+          </div>
+
+          <div class="account-actions">
+            <button type="button" id="logout-customer" class="secondary-cta">Logout</button>
+            <a href="index.html" class="primary-cta" style="display:inline-block; text-align:center; text-decoration:none;">Back to home</a>
+          </div>
         </div>
       </div>
     </section>
@@ -198,9 +277,11 @@
     function renderAccount() {
       const card = document.getElementById('account-card');
       const nameEl = document.getElementById('acct-name');
+      const nameSummaryEl = document.getElementById('acct-name-summary');
       const emailEl = document.getElementById('acct-email');
       const roleEl = document.getElementById('acct-role');
       const statusEl = document.getElementById('acct-status');
+      const statusDetailEl = document.getElementById('acct-status-detail');
 
       if (!session) {
         card.innerHTML = '<p class="form-subtitle">You need to log in to view this page.</p><a href="customer-login.html" class="primary-cta" style="display:inline-block; text-align:center; text-decoration:none;">Go to customer login</a>';
@@ -211,10 +292,13 @@
       document.body.classList.toggle('theme-dark', profile.theme === 'dark');
       document.body.classList.toggle('theme-light', profile.theme !== 'dark');
 
-      nameEl.textContent = profile.name || 'Customer';
+      const accountName = profile.name || 'Customer';
+      nameEl.textContent = accountName;
+      nameSummaryEl.textContent = accountName;
       emailEl.textContent = session.email || '—';
       roleEl.textContent = (session.role || 'guest').toUpperCase();
       statusEl.textContent = 'Active';
+      statusDetailEl.textContent = 'Active';
 
       document.getElementById('profile-name').value = profile.name || '';
       document.getElementById('profile-title').value = profile.title || '';
@@ -234,6 +318,12 @@
     }
 
     renderAccount();
+
+    document.getElementById('account-summary-toggle').addEventListener('click', () => {
+      const card = document.getElementById('account-card');
+      const isOpen = card.classList.toggle('is-open');
+      document.getElementById('account-summary-toggle').setAttribute('aria-expanded', String(isOpen));
+    });
 
     document.getElementById('customer-profile-form').addEventListener('submit', async (event) => {
       event.preventDefault();
