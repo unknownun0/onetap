@@ -15,8 +15,29 @@ const {
   getCustomerProfile,
   listAccounts,
   deactivateAccount,
-  deleteAccount
+  deleteAccount,
+  getHomePageSettings,
+  setHomePageSettings
 } = require('./guest-admin.js');
+
+test('admin can edit the home page content, image, and product details', () => {
+  const next = {
+    headline: 'Your Link.',
+    subheadline: 'One Tap.',
+    description: 'Custom NFC cards and keychains for your social, business and brand.',
+    image: 'https://example.com/onetap.png',
+    badges: ['ONE TAP', 'FACEBOOK', 'LINKEDIN'],
+    accountText: 'My Account'
+  };
+
+  const saved = setHomePageSettings(next);
+  const loaded = getHomePageSettings();
+
+  assert.deepEqual(saved, next);
+  assert.equal(loaded.headline, 'Your Link.');
+  assert.equal(loaded.image, 'https://example.com/onetap.png');
+  assert.deepEqual(loaded.badges, ['ONE TAP', 'FACEBOOK', 'LINKEDIN']);
+});
 
 test('createGuestInvite adds a new guest with a token and sign-up URL', () => {
   setStore('guests', []);

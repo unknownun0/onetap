@@ -1,11 +1,20 @@
 const STORAGE_KEYS = {
   guests: 'onetap_guests',
-  accounts: 'onetap_accounts'
+  accounts: 'onetap_accounts',
+  homePage: 'onetap_homepage_settings'
 };
 
 const DEFAULT_STORE = {
   guests: [],
-  accounts: []
+  accounts: [],
+  homePage: {
+    headline: 'Your Link.',
+    subheadline: 'One Tap.',
+    description: 'Custom NFC cards & keychains for your social, business, and brand.',
+    image: 'img/ONE TAP.png',
+    badges: ['ONE TAP', 'FACEBOOK', 'TIKTOK', 'LINKEDIN', 'ANY LINK'],
+    accountText: 'My Account'
+  }
 };
 
 const memoryStorage = {};
@@ -66,7 +75,29 @@ function setStore(key, value) {
 
 function getStore(key) {
   const state = readStorage();
+  if (key === 'homePage') {
+    return state.homePage || DEFAULT_STORE.homePage;
+  }
   return state[key] || [];
+}
+
+function getHomePageSettings() {
+  return {
+    ...DEFAULT_STORE.homePage,
+    ...getStore('homePage')
+  };
+}
+
+function setHomePageSettings(settings = {}) {
+  const current = getHomePageSettings();
+  const next = {
+    ...current,
+    ...settings,
+    badges: Array.isArray(settings.badges) ? settings.badges.map(item => String(item).trim()).filter(Boolean) : (current.badges || [])
+  };
+
+  setStore('homePage', next);
+  return next;
 }
 
 function generateToken() {
@@ -420,6 +451,8 @@ if (typeof module !== 'undefined') {
     listAccounts,
     deactivateAccount,
     deleteAccount,
+    getHomePageSettings,
+    setHomePageSettings,
     setStore,
     getStore,
     generateToken,

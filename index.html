@@ -18,15 +18,15 @@
       <span>•</span>
       <span>GROW</span>
     </nav>
-    <a class="account-link" href="customer-login.html">My Account</a>
+    <a id="home-account-link" class="account-link" href="customer-login.html">My Account</a>
   </header>
 
   <main class="landing-hero">
     <section class="landing-copy fade-item">
-      <h1>Your Link.<br><span>One Tap.</span></h1>
-      <p>Custom NFC cards &amp; keychains for your social, business and brand.</p>
+      <h1 id="home-headline">Your Link.<br><span id="home-subheadline">One Tap.</span></h1>
+      <p id="home-description">Custom NFC cards &amp; keychains for your social, business, and brand.</p>
 
-      <div class="product-badges" aria-label="One Tap socials">
+      <div id="home-badges" class="product-badges" aria-label="One Tap socials">
         <span>ONE TAP</span>
         <span>FACEBOOK</span>
         <span>TIKTOK</span>
@@ -36,60 +36,38 @@
     </section>
 
     <section class="landing-visual fade-item" aria-label="One Tap product preview">
-      <img src="img/ONE TAP.png" alt="One Tap product mockup">
+      <img id="home-image" src="img/ONE TAP.png" alt="One Tap product mockup">
     </section>
   </main>
 </div>
-</body>
-</html>
-  const profile = buildProfileFromForm();
-  location.href = '/preview.html#data=' + encodeProfile(profile);
-});
 
-document.getElementById('sample-btn').addEventListener('click', () => {
-  document.getElementById('f-name').value = 'John B.';
-  document.getElementById('f-title').value = 'Graphic Designer';
-  document.getElementById('f-tagline').value = 'Making brands look good since 2015';
-  document.getElementById('f-avatar').value = '';
-  document.getElementById('f-accent').value = '#2563EB';
-  document.getElementById('phone-rows').innerHTML = '';
-  document.getElementById('email-rows').innerHTML = '';
-  document.getElementById('link-rows').innerHTML = '';
-  addPhoneRow('Mobile', '+1 555 010 2200');
-  addEmailRow('Work', 'hello@johnb.design');
-  document.getElementById('f-addr-street').value = '';
-  document.getElementById('f-addr-city').value = 'Austin, TX';
-  document.getElementById('f-addr-country').value = 'USA';
-  addLinkRow('website', 'Portfolio', 'johnb.design');
-  addLinkRow('instagram', 'Instagram', 'johnb.design');
-  addLinkRow('facebook', 'Facebook', 'johnb.design');
-});
+<script src="guest-admin.js"></script>
+<script>
+  const settings = getHomePageSettings();
 
-/* Pre-fill the form if we arrived here from "Edit" on the preview page */
-const existing = getProfileFromHash();
-if (existing) {
-  document.getElementById('f-name').value = existing.name || '';
-  document.getElementById('f-title').value = existing.title || '';
-  document.getElementById('f-tagline').value = existing.tagline || '';
-  document.getElementById('f-avatar').value = existing.avatar || '';
-  document.getElementById('f-accent').value = existing.accent || '#2563EB';
-  (existing.phones || []).forEach(p => addPhoneRow(p.label, p.number));
-  (existing.emails || []).forEach(e => addEmailRow(e.label, e.address));
-  if (existing.address) {
-    document.getElementById('f-addr-label').value = existing.address.label || '';
-    document.getElementById('f-addr-street').value = existing.address.street || '';
-    document.getElementById('f-addr-city').value = existing.address.city || '';
-    document.getElementById('f-addr-country').value = existing.address.country || '';
+  if (settings.headline) {
+    const headlineWrap = document.getElementById('home-headline');
+    headlineWrap.innerHTML = settings.headline + (settings.subheadline ? '<br><span>' + settings.subheadline + '</span>' : '');
   }
-  (existing.groups || []).forEach(g => (g.links || []).forEach(l => addLinkRow(l.type, l.label, l.value)));
-}
 
-/* Always start with one empty row of each so the form isn't blank */
-if (!existing) {
-  addPhoneRow('Mobile', '');
-  addEmailRow('Work', '');
-  addLinkRow('website', 'Website', '');
-}
+  if (settings.description) {
+    document.getElementById('home-description').textContent = settings.description;
+  }
+
+  if (settings.image) {
+    const image = document.getElementById('home-image');
+    image.src = settings.image;
+    image.alt = settings.subheadline || 'One Tap product mockup';
+  }
+
+  if (settings.accountText) {
+    document.getElementById('home-account-link').textContent = settings.accountText;
+  }
+
+  if (Array.isArray(settings.badges) && settings.badges.length) {
+    const badgeWrap = document.getElementById('home-badges');
+    badgeWrap.innerHTML = settings.badges.map(label => '<span>' + label + '</span>').join('');
+  }
 </script>
 </body>
 </html>
