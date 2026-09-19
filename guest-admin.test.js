@@ -7,7 +7,10 @@ const {
   getGuestByToken,
   listGuests,
   setStore,
-  getStore
+  getStore,
+  getCustomerSession,
+  setCustomerSession,
+  loginCustomer
 } = require('./guest-admin.js');
 
 test('createGuestInvite adds a new guest with a token and sign-up URL', () => {
@@ -50,4 +53,25 @@ test('duplicate guest email is rejected', () => {
   const result = createGuestInvite({ name: 'Beta', email: 'alpha@example.com' });
 
   assert.equal(result.error, 'Email already exists');
+});
+
+test('customer can sign in and keep a session for their account page', () => {
+  setStore('guests', []);
+  setStore('accounts', []);
+  setCustomerSession(null);
+
+  const guest = createGuestInvite({ name: 'Customer User', email: 'customer@example.com' });
+  const account = createGuestAccount({
+    guestToken: guest.token,
+    name: 'Customer User',
+    email: 'customer@example.com',
+    password: 'secret123'
+  });
+
+  const login = loginCustomer({ email: 'customer@example.com', password: 'secret123' });
+
+  assert.equal(login.ok, true);
+  assert.equal(login.account.email, 'customer@example.com');
+  assert.equal(getCustomerSession().email, 'customer@example.com');
+  assert.equal(account.email, 'customer@example.com');
 });

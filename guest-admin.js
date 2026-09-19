@@ -8,6 +8,25 @@ const DEFAULT_STORE = {
   accounts: []
 };
 
+const memoryStorage = {};
+
+function getStorage() {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    return window.localStorage;
+  }
+  return {
+    getItem(key) {
+      return Object.prototype.hasOwnProperty.call(memoryStorage, key) ? memoryStorage[key] : null;
+    },
+    setItem(key, value) {
+      memoryStorage[key] = String(value);
+    },
+    removeItem(key) {
+      delete memoryStorage[key];
+    }
+  };
+}
+
 function getBaseUrl() {
   if (typeof window !== 'undefined' && window.location) {
     return `${window.location.origin}${window.location.pathname.replace(/[^/]*$/, '')}`;
@@ -24,11 +43,7 @@ function generateId() {
 }
 
 function readStorage() {
-  if (typeof window === 'undefined') {
-    return DEFAULT_STORE;
-  }
-
-  const raw = localStorage.getItem('onetap_admin_state');
+  const raw = getStorage().getItem('onetap_admin_state');
   if (!raw) return DEFAULT_STORE;
 
   try {
@@ -39,9 +54,7 @@ function readStorage() {
 }
 
 function writeStorage(data) {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('onetap_admin_state', JSON.stringify(data));
-  }
+  getStorage().setItem('onetap_admin_state', JSON.stringify(data));
 }
 
 function setStore(key, value) {
@@ -151,22 +164,33 @@ function createGuestAccount({ guestToken, name, email, password }) {
 
   setStore('guests', guests);
   setStore('accounts', accounts);
+
+  setCustomerSession({
+    id: account.id,
+    name: account.name,
+    email: account.email,
+    role: account.role,
+    loggedInAt: new Date().toISOString()
+  });
+
   return account;
 }
 
 function getAdminSession() {
-  if (typeof window === 'undefined') return null;
   try {
-    return JSON.parse(localStorage.getItem('onetap_admin_session') || 'null');
+    return JSON.parse(getStorage().getItem('onetap_admin_session') || 'null');
   } catch (error) {
     return null;
   }
 }
 
 function setAdminSession(value) {
-  if (typeof window === 'undefined') return null;
-  localStorage.setItem('onetap_admin_session', JSON.stringify(value));
-  return value;
+  if (value) {
+    getStorage().setItem('onetap_admin_session', JSON.stringify(value));
+    return value;
+  }
+  getStorage().removeItem('onetap_admin_session');
+  return null;
 }
 
 function loginAdmin({ username, password }) {
@@ -183,8 +207,54 @@ function loginAdmin({ username, password }) {
 }
 
 function logoutAdmin() {
-  if (typeof window === 'undefined') return true;
-  localStorage.removeItem('onetap_admin_session');
+  getStorage().removeItem('onetap_admin_session');
+  return true;
+}
+
+function getCustomerSession() {
+  try {
+    return JSON.parse(getStorage().getItem('onetap_customer_session') || 'null');
+  } catch (error) {
+    return null;
+  }
+}
+
+function setCustomerSession(value) {
+  if (value) {
+    getStorage().setItem('onetap_customer_session', JSON.stringify(value));
+    return value;
+  }
+  getStorage().removeItem('onetap_customer_session');
+  return null;
+}
+
+function loginCustomer({ email, password }) {
+  const cleanEmail = normalizeEmail(email);
+  const cleanPassword = String(password || '').trim();
+
+  if (!cleanEmail || !cleanPassword) {
+    return { ok: false, error: 'Email and password are required.' };
+  }
+
+  const account = getStore('accounts').find(item => normalizeEmail(item.email) === cleanEmail && String(item.password || '') === cleanPassword);
+  if (!account) {
+    return { ok: false, error: 'Invalid email or password.' };
+  }
+
+  const session = {
+    id: account.id,
+    name: account.name,
+    email: account.email,
+    role: account.role,
+    loggedInAt: new Date().toISOString()
+  };
+
+  setCustomerSession(session);
+  return { ok: true, account, session };
+}
+
+function logoutCustomer() {
+  setCustomerSession(null);
   return true;
 }
 
@@ -202,6 +272,10 @@ if (typeof module !== 'undefined') {
     getAdminSession,
     setAdminSession,
     loginAdmin,
-    logoutAdmin
+    logoutAdmin,
+    getCustomerSession,
+    setCustomerSession,
+    loginCustomer,
+    logoutCustomer
   };
 }

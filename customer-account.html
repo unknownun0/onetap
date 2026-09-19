@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Account</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      background: #f8fafc;
+    }
+    .page {
+      max-width: 700px;
+    }
+    .account-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 14px 30px rgba(15, 23, 42, 0.05);
+    }
+    .account-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .account-row:last-child {
+      border-bottom: none;
+    }
+    .account-label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .account-value {
+      font-weight: 600;
+      text-align: right;
+    }
+    .account-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="form-section fade-item">
+      <h1 class="form-title">My account</h1>
+      <p class="form-subtitle">This is your customer portal after registration.</p>
+
+      <div id="account-card" class="account-card">
+        <div class="account-row">
+          <span class="account-label">Name</span>
+          <span id="acct-name" class="account-value">—</span>
+        </div>
+        <div class="account-row">
+          <span class="account-label">Email</span>
+          <span id="acct-email" class="account-value">—</span>
+        </div>
+        <div class="account-row">
+          <span class="account-label">Role</span>
+          <span id="acct-role" class="account-value">—</span>
+        </div>
+        <div class="account-row">
+          <span class="account-label">Status</span>
+          <span id="acct-status" class="account-value">Active</span>
+        </div>
+
+        <div class="account-actions">
+          <button type="button" id="logout-customer" class="secondary-cta">Logout</button>
+          <a href="index.html" class="primary-cta" style="display:inline-block; text-align:center; text-decoration:none;">Back to home</a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="guest-admin.js"></script>
+  <script>
+    const session = getCustomerSession();
+
+    function renderAccount() {
+      const card = document.getElementById('account-card');
+      const nameEl = document.getElementById('acct-name');
+      const emailEl = document.getElementById('acct-email');
+      const roleEl = document.getElementById('acct-role');
+
+      if (!session) {
+        card.innerHTML = '<p class="form-subtitle">You need to create an account first.</p><a href="guest-admin.html" class="primary-cta" style="display:inline-block; text-align:center; text-decoration:none;">Go to invite page</a>';
+        return;
+      }
+
+      nameEl.textContent = session.name || 'Customer';
+      emailEl.textContent = session.email || '—';
+      roleEl.textContent = (session.role || 'guest').toUpperCase();
+    }
+
+    renderAccount();
+
+    document.getElementById('logout-customer').addEventListener('click', () => {
+      logoutCustomer();
+      window.location.href = 'index.html';
+    });
+  </script>
+</body>
+</html>
