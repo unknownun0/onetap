@@ -50,8 +50,13 @@ function decodeBase64(value) {
 }
 
 function getBaseUrl(requestUrl) {
-  const host = requestUrl.headers.host || 'localhost';
-  return `${requestUrl.socket.encrypted ? 'https' : 'http'}://${host}`;
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  const host = requestUrl && requestUrl.headers && requestUrl.headers.host ? requestUrl.headers.host : 'localhost';
+  const scheme = requestUrl && requestUrl.socket && requestUrl.socket.encrypted ? 'https' : 'http';
+  return `${scheme}://${host}`;
 }
 
 function generateToken() {
@@ -67,7 +72,7 @@ function getQrDisplayUrl(value, size = 220) {
   return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&format=png&data=${encoded}`;
 }
 
-function buildGuestPreviewUrl(profile = {}) {
+function buildGuestPreviewUrl(profile = {}, baseUrl = getBaseUrl()) {
   const payload = {
     name: String(profile.name || 'Customer').trim() || 'Customer',
     title: String(profile.title || '').trim(),
@@ -85,7 +90,7 @@ function buildGuestPreviewUrl(profile = {}) {
   };
 
   const encoded = Buffer.from(JSON.stringify(payload)).toString('base64url');
-  return `http://localhost/profile.html#data=${encoded}`;
+  return `${baseUrl}/profile.html#data=${encoded}`;
 }
 
 function createGuestInviteData({ name, email, notes = '' }, baseUrl = 'http://localhost') {
@@ -142,11 +147,11 @@ function createAccountForGuest({ guestToken, name, email, password }, baseUrl = 
   if (normalizeEmail(guest.email) !== cleanEmail) return { error: 'This account must be created with the email from the admin invitation.' };
   if ((state.accounts || []).some(account => normalizeEmail(account.email) === cleanEmail)) return { error: 'This email already has an account.' };
 
-  const previewUrl = `${baseUrl}/profile.html#data=${Buffer.from(JSON.stringify({
+  const previewUrl = buildGuestPreviewUrl({
     name: cleanName,
     email: cleanEmail,
     accent: '#2563EB'
-  })).toString('base64url')}`;
+  }, baseUrl);
 
   const account = {
     id: generateId(),
