@@ -54,7 +54,9 @@ function getBaseUrl(requestUrl) {
     return `https://${process.env.VERCEL_URL}`;
   }
 
-  const host = requestUrl && requestUrl.headers && requestUrl.headers.host ? requestUrl.headers.host : 'localhost';
+  // Use the full host header (includes port) so QR codes and preview URLs
+  // point back to the correct port on the same network.
+  const host = requestUrl && requestUrl.headers && requestUrl.headers.host ? requestUrl.headers.host : 'localhost:3000';
   const scheme = requestUrl && requestUrl.socket && requestUrl.socket.encrypted ? 'https' : 'http';
   return `${scheme}://${host}`;
 }
@@ -93,7 +95,7 @@ function buildGuestPreviewUrl(profile = {}, baseUrl = getBaseUrl()) {
   return `${baseUrl}/profile.html#data=${encoded}`;
 }
 
-function createGuestInviteData({ name, email, notes = '' }, baseUrl = 'http://localhost') {
+function createGuestInviteData({ name, email, notes = '' }, baseUrl = 'http://localhost:3000') {
   const cleanName = String(name || '').trim();
   const cleanEmail = normalizeEmail(email);
 
@@ -132,7 +134,7 @@ function findGuestByToken(token) {
   return (state.guests || []).find(item => item.token === token) || null;
 }
 
-function createAccountForGuest({ guestToken, name, email, password }, baseUrl = 'http://localhost') {
+function createAccountForGuest({ guestToken, name, email, password }, baseUrl = 'http://localhost:3000') {
   const cleanName = String(name || '').trim();
   const cleanEmail = normalizeEmail(email);
   const cleanPassword = String(password || '').trim();
