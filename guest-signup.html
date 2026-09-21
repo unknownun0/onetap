@@ -50,6 +50,11 @@
       }
 
       const guests = await requestJson('/api/guests');
+      if (!guests) {
+        alert('Cannot reach the server. Make sure the Node server is running (node server.js on port 3000).');
+        window.location.href = 'customer-login.html';
+        return null;
+      }
       const invitingGuest = Array.isArray(guests) ? guests.find(item => item.token === token) : null;
 
       if (!invitingGuest) {

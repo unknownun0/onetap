@@ -408,21 +408,25 @@ function createGuestInvite({ name, email, notes = '' }) {
       notes: String(notes || '')
     };
 
-    const result = window.fetch('/api/guests', {
+    return window.fetch('/api/guests', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     }).then(async (response) => {
-      const data = await response.json().catch(() => null);
+      const text = await response.text().catch(() => '');
+      let data = null;
+      try { data = JSON.parse(text); } catch (e) { /* not JSON */ }
+
+      if (!response.ok) {
+        return { error: (data && data.error) || 'Server error (' + response.status + '). Is the Node server running on port 3000?' };
+      }
       if (!data || data.error) {
-        return data || { error: 'Unable to create invite right now.' };
+        return { error: (data && data.error) || 'Unable to create invite. Unexpected server response.' };
       }
       return data;
-    }).catch(() => null);
-
-    if (typeof result !== 'undefined') {
-      return result;
-    }
+    }).catch((err) => {
+      return { error: 'Cannot reach the server. Make sure the Node server is running (node server.js on port 3000).' };
+    });
   }
 
   const existingGuests = getStore('guests');
@@ -595,7 +599,13 @@ function createGuestAccount({ guestToken, name, email, password }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     }).then(async (response) => {
-      const data = await response.json().catch(() => null);
+      const text = await response.text().catch(() => '');
+      let data = null;
+      try { data = JSON.parse(text); } catch (e) { /* not JSON */ }
+
+      if (!response.ok) {
+        return { error: (data && data.error) || 'Server error (' + response.status + '). Is the Node server running?' };
+      }
       if (data && !data.error) {
         setCustomerSession({
           id: data.id,
@@ -605,9 +615,9 @@ function createGuestAccount({ guestToken, name, email, password }) {
           loggedInAt: new Date().toISOString()
         });
       }
-      return data || { error: 'Unable to create account right now.' };
+      return data || { error: 'Unable to create account. Unexpected server response.' };
     }).catch(() => {
-      return { error: 'Unable to create account right now.' };
+      return { error: 'Cannot reach the server. Make sure the Node server is running (node server.js).' };
     });
   }
 
@@ -742,14 +752,20 @@ function loginCustomer({ email, password }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: cleanEmail, password: cleanPassword })
     }).then(async (response) => {
-      const data = await response.json().catch(() => null);
+      const text = await response.text().catch(() => '');
+      let data = null;
+      try { data = JSON.parse(text); } catch (e) { /* not JSON */ }
+
+      if (!response.ok) {
+        return { ok: false, error: (data && data.error) || 'Server error (' + response.status + '). Is the Node server running?' };
+      }
       if (!data || !data.ok) {
-        return data || { ok: false, error: 'Invalid email or password.' };
+        return { ok: false, error: (data && data.error) || 'Invalid email or password.' };
       }
 
       setCustomerSession(data.session);
       return data;
-    }).catch(() => ({ ok: false, error: 'Invalid email or password.' }));
+    }).catch(() => ({ ok: false, error: 'Cannot reach the server. Make sure the Node server is running (node server.js).' }));
   }
 
   const account = getStore('accounts').find(item => normalizeEmail(item.email) === cleanEmail && String(item.password || '') === cleanPassword);
