@@ -3,71 +3,1157 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>One Tap</title>
-<meta name="description" content="Custom NFC cards and keychains for your social, business, and brand.">
+<title>One Tap PH — NFC Cards, Stands & Keychains</title>
+<meta name="description" content="Custom NFC cards, stands, and keychains for your social, business, and brand. One tap. One link. Endless possibilities.">
 <meta name="theme-color" content="#FFFFFF">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<style>
+  /* ===== NAV ===== */
+  .top-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 0;
+    margin-bottom: 10px;
+  }
+  .logo {
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: #0f172a;
+  }
+  .logo span { color: var(--accent); }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .nav-links a {
+    font-size: 14px;
+    font-weight: 500;
+    color: #475569;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+  .nav-cta {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 22px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff !important;
+    font-weight: 600;
+    font-size: 14px;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.25);
+    transition: all 0.2s;
+  }
+  .nav-cta:hover {
+    box-shadow: 0 6px 20px rgba(37,99,235,0.35);
+    transform: translateY(-1px);
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    text-align: center;
+    padding: 60px 0 50px;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    border-radius: 999px;
+    background: rgba(37,99,235,0.08);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 24px;
+  }
+  .hero h1 {
+    margin: 0;
+    font-size: clamp(2.8rem, 5vw, 5rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    font-weight: 900;
+    color: #0f172a;
+  }
+  .hero h1 .gradient-text {
+    background: linear-gradient(135deg, #2563EB 0%, #7C3AED 50%, #EC4899 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    margin: 20px auto 0;
+    max-width: 580px;
+    font-size: 1.15rem;
+    color: #64748B;
+    line-height: 1.6;
+  }
+  .hero-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+  .hero-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 32px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #2563EB, #7C3AED);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    box-shadow: 0 6px 24px rgba(37,99,235,0.3);
+    transition: all 0.2s;
+  }
+  .hero-btn-primary:hover {
+    box-shadow: 0 10px 32px rgba(37,99,235,0.4);
+    transform: translateY(-2px);
+  }
+  .hero-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: 999px;
+    border: 2px solid #E2E8F0;
+    color: #334155;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .hero-btn-secondary:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .hero-image {
+    margin-top: 48px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .hero-image img {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 30px 60px rgba(15,23,42,0.15));
+  }
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+    margin-top: 48px;
+    flex-wrap: wrap;
+  }
+  .hero-stat {
+    text-align: center;
+  }
+  .hero-stat-number {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+  }
+  .hero-stat-label {
+    font-size: 13px;
+    color: #94A3B8;
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  /* ===== SOCIAL PROOF ===== */
+  .social-proof {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    padding: 32px 0;
+    flex-wrap: wrap;
+  }
+  .social-proof-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #475569;
+  }
+  .social-proof-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  .social-proof-icon.g { background: rgba(66,133,244,0.1); color: #4285F4; }
+  .social-proof-icon.fb { background: rgba(24,119,242,0.1); color: #1877F2; }
+  .social-proof-icon.ig { background: linear-gradient(135deg, rgba(131,58,180,0.1), rgba(253,29,29,0.1), rgba(252,176,69,0.1)); color: #E1306C; }
+
+  /* ===== SECTION SHARED ===== */
+  .section { padding: 72px 0; }
+  .section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .section-title {
+    margin: 0;
+    font-size: clamp(2rem, 3.5vw, 2.8rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #0f172a;
+    line-height: 1.1;
+  }
+  .section-subtitle {
+    margin: 14px 0 0;
+    font-size: 1.05rem;
+    color: #64748B;
+    max-width: 540px;
+    line-height: 1.6;
+  }
+  .section-center { text-align: center; }
+  .section-center .section-subtitle { margin-left: auto; margin-right: auto; }
+
+  /* ===== PRODUCTS GRID ===== */
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 48px;
+  }
+  .product-card {
+    border: 1px solid #E2E8F0;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 4px 6px -1px rgba(15,23,42,0.04);
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    position: relative;
+  }
+  .product-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px rgba(15,23,42,0.1);
+    border-color: rgba(37,99,235,0.2);
+  }
+  .product-card-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    z-index: 2;
+  }
+  .badge-popular {
+    background: linear-gradient(135deg, #F59E0B, #EF4444);
+    color: #fff;
+  }
+  .badge-new {
+    background: linear-gradient(135deg, #10B981, #059669);
+    color: #fff;
+  }
+  .badge-custom {
+    background: linear-gradient(135deg, #8B5CF6, #6366F1);
+    color: #fff;
+  }
+  .product-visual {
+    height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .product-visual-bg {
+    position: absolute;
+    inset: 0;
+    opacity: 0.6;
+  }
+  .product-visual-icon {
+    position: relative;
+    z-index: 1;
+    font-size: 72px;
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.1));
+  }
+  .product-info {
+    padding: 24px;
+  }
+  .product-name {
+    margin: 0 0 6px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+  }
+  .product-tagline {
+    margin: 0 0 14px;
+    font-size: 14px;
+    color: #64748B;
+    line-height: 1.5;
+  }
+  .product-features {
+    list-style: none;
+    margin: 0 0 20px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .product-features li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #475569;
+  }
+  .product-features li .check {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(34,197,94,0.1);
+    color: #16A34A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .product-cta {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+  .product-cta-primary {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.2);
+  }
+  .product-cta-primary:hover {
+    background: #1D4ED8;
+    box-shadow: 0 6px 20px rgba(37,99,235,0.3);
+    transform: translateY(-1px);
+  }
+  .product-cta-outline {
+    border: 2px solid #E2E8F0;
+    color: #334155;
+  }
+  .product-cta-outline:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ===== NFC CARD DETAIL ===== */
+  .nfc-detail {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+    margin-top: 48px;
+  }
+  .nfc-detail-visual {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0f172a, #1e3a5f);
+    padding: 40px;
+    min-height: 420px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .nfc-card-mockup {
+    width: 240px;
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    position: relative;
+  }
+  .nfc-card-mockup::before {
+    content: "NFC";
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #94A3B8;
+    letter-spacing: 0.1em;
+  }
+  .nfc-card-logo {
+    font-size: 18px;
+    font-weight: 900;
+    color: #0f172a;
+    margin-bottom: 20px;
+  }
+  .nfc-card-logo span { color: #2563EB; }
+  .nfc-card-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 4px;
+  }
+  .nfc-card-title {
+    font-size: 12px;
+    color: #94A3B8;
+    margin-bottom: 16px;
+  }
+  .nfc-card-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .nfc-card-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #F8FAFC;
+    font-size: 12px;
+    font-weight: 500;
+    color: #334155;
+  }
+  .nfc-card-link-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .nfc-card-link-icon.ig { background: linear-gradient(135deg, #833AB4, #FD1D1D, #F77737); color: #fff; }
+  .nfc-card-link-icon.fb { background: #1877F2; color: #fff; }
+  .nfc-card-link-icon.g { background: #4285F4; color: #fff; }
+  .nfc-card-link-icon.link { background: #E2E8F0; color: #64748B; }
+  .nfc-tap-icon {
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    width: 50px;
+    height: 50px;
+    background: #2563EB;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.3);
+  }
+  .nfc-tap-waves {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    gap: 3px;
+    opacity: 0.5;
+  }
+  .nfc-tap-waves span {
+    width: 3px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.4);
+  }
+  .nfc-detail-content { }
+  .nfc-detail-content h3 {
+    margin: 0 0 8px;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+  }
+  .nfc-detail-content h3 span {
+    background: linear-gradient(135deg, #2563EB, #7C3AED);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .nfc-detail-content p {
+    margin: 0 0 20px;
+    font-size: 15px;
+    color: #64748B;
+    line-height: 1.7;
+  }
+  .nfc-detail-features {
+    list-style: none;
+    margin: 0 0 28px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .nfc-detail-features li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 14px;
+    color: #334155;
+    line-height: 1.5;
+  }
+  .nfc-detail-features li .feat-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .feat-icon.blue { background: rgba(37,99,235,0.1); color: #2563EB; }
+  .feat-icon.green { background: rgba(34,197,94,0.1); color: #16A34A; }
+  .feat-icon.purple { background: rgba(139,92,246,0.1); color: #7C3AED; }
+  .feat-icon.orange { background: rgba(249,115,22,0.1); color: #F97316; }
+  .nfc-detail-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 32px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #2563EB, #7C3AED);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    box-shadow: 0 6px 24px rgba(37,99,235,0.3);
+    transition: all 0.2s;
+  }
+  .nfc-detail-cta:hover {
+    box-shadow: 0 10px 32px rgba(37,99,235,0.4);
+    transform: translateY(-2px);
+  }
+
+  /* ===== HOW IT WORKS ===== */
+  .steps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    margin-top: 48px;
+  }
+  .step-card {
+    text-align: center;
+    padding: 32px 24px;
+    border-radius: 18px;
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    position: relative;
+    transition: all 0.3s;
+  }
+  .step-card:hover {
+    box-shadow: 0 12px 30px rgba(15,23,42,0.06);
+    transform: translateY(-3px);
+  }
+  .step-number {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2563EB, #7C3AED);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 800;
+    margin: 0 auto 18px;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.2);
+  }
+  .step-card h4 {
+    margin: 0 0 8px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .step-card p {
+    margin: 0;
+    font-size: 14px;
+    color: #64748B;
+    line-height: 1.6;
+  }
+
+  /* ===== USE CASES ===== */
+  .usecases-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 48px;
+  }
+  .usecase-card {
+    padding: 32px;
+    border-radius: 18px;
+    border: 1px solid #E2E8F0;
+    background: #fff;
+    transition: all 0.3s;
+  }
+  .usecase-card:hover {
+    box-shadow: 0 12px 30px rgba(15,23,42,0.06);
+    transform: translateY(-3px);
+  }
+  .usecase-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 18px;
+  }
+  .usecase-icon.biz { background: rgba(37,99,235,0.1); }
+  .usecase-icon.personal { background: rgba(139,92,246,0.1); }
+  .usecase-card h4 {
+    margin: 0 0 8px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .usecase-card p {
+    margin: 0;
+    font-size: 14px;
+    color: #64748B;
+    line-height: 1.7;
+  }
+
+  /* ===== FAQ ===== */
+  .faq-list {
+    max-width: 680px;
+    margin: 48px auto 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .faq-item {
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    background: #fff;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .faq-item:hover {
+    box-shadow: 0 4px 12px rgba(15,23,42,0.05);
+  }
+  .faq-question {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f172a;
+    text-align: left;
+    cursor: pointer;
+    background: none;
+    border: none;
+    transition: color 0.2s;
+  }
+  .faq-question:hover { color: var(--accent); }
+  .faq-arrow {
+    width: 20px;
+    height: 20px;
+    color: #94A3B8;
+    transition: transform 0.3s;
+    flex-shrink: 0;
+  }
+  .faq-item.open .faq-arrow { transform: rotate(180deg); }
+  .faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+  }
+  .faq-item.open .faq-answer {
+    max-height: 200px;
+    padding: 0 20px 18px;
+  }
+  .faq-answer p {
+    margin: 0;
+    font-size: 14px;
+    color: #64748B;
+    line-height: 1.7;
+  }
+
+  /* ===== CTA BANNER ===== */
+  .cta-banner {
+    margin-top: 72px;
+    padding: 64px 48px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1d4ed8 100%);
+    text-align: center;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-banner::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    background: rgba(99,102,241,0.15);
+  }
+  .cta-banner::after {
+    content: "";
+    position: absolute;
+    bottom: -30%;
+    left: -10%;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: rgba(37,99,235,0.1);
+  }
+  .cta-banner h2 {
+    margin: 0 0 12px;
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    position: relative;
+    z-index: 1;
+  }
+  .cta-banner p {
+    margin: 0 0 28px;
+    font-size: 1.05rem;
+    opacity: 0.8;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+    position: relative;
+    z-index: 1;
+  }
+  .cta-banner-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 36px;
+    border-radius: 999px;
+    background: #fff;
+    color: #0f172a;
+    font-size: 16px;
+    font-weight: 700;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    transition: all 0.2s;
+    position: relative;
+    z-index: 1;
+  }
+  .cta-banner-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  }
+
+  /* ===== FOOTER ===== */
+  .site-footer {
+    padding: 48px 0 32px;
+    border-top: 1px solid #E2E8F0;
+    margin-top: 72px;
+  }
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .footer-copy {
+    font-size: 13px;
+    color: #94A3B8;
+  }
+  .footer-links {
+    display: flex;
+    gap: 24px;
+  }
+  .footer-links a {
+    font-size: 13px;
+    color: #94A3B8;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--accent); }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 980px) {
+    .products-grid { grid-template-columns: 1fr; max-width: 420px; margin-left: auto; margin-right: auto; }
+    .nfc-detail { grid-template-columns: 1fr; }
+    .nfc-detail-visual { min-height: 360px; }
+    .steps-grid { grid-template-columns: 1fr; max-width: 400px; margin-left: auto; margin-right: auto; }
+    .usecases-grid { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+  }
+  @media (max-width: 640px) {
+    .hero { padding: 40px 0 36px; }
+    .hero h1 { font-size: 2.6rem; }
+    .hero-stats { gap: 28px; }
+    .cta-banner { padding: 40px 24px; margin-top: 48px; }
+    .section { padding: 48px 0; }
+  }
+</style>
 </head>
 <body class="landing-page">
-<div class="landing-shell">
-  <header class="landing-header">
-    <nav class="landing-nav" aria-label="Main navigation">
-      <span>TAP</span>
-      <span>•</span>
-      <span>CONNECT</span>
-      <span>•</span>
-      <span>GROW</span>
-    </nav>
-    <a id="home-account-link" class="account-link" href="customer-login.html">My Account</a>
-  </header>
 
-  <main class="landing-hero">
-    <section class="landing-copy fade-item">
-      <h1 id="home-headline">Your Link.<br><span id="home-subheadline">One Tap.</span></h1>
-      <p id="home-description">Custom NFC cards &amp; keychains for your social, business, and brand.</p>
-
-      <div id="home-badges" class="product-badges" aria-label="One Tap socials">
-        <span>ONE TAP</span>
-        <span>FACEBOOK</span>
-        <span>TIKTOK</span>
-        <span>LINKEDIN</span>
-        <span>ANY LINK</span>
-      </div>
-    </section>
-
-    <section class="landing-visual fade-item" aria-label="One Tap product preview">
-      <img id="home-image" src="img/ONE TAP.png" alt="One Tap product mockup">
-    </section>
-  </main>
+<!-- ===== NAV ===== -->
+<div style="max-width:1200px; margin:0 auto; padding:0 32px;">
+  <nav class="top-nav">
+    <div class="logo">ONE<span>TAP</span></div>
+    <ul class="nav-links">
+      <li><a href="#products">Products</a></li>
+      <li><a href="#how-it-works">How It Works</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="customer-login.html" class="nav-cta">My Account</a></li>
+    </ul>
+  </nav>
 </div>
 
-<script src="guest-admin.js"></script>
+<!-- ===== HERO ===== -->
+<section class="hero" style="max-width:1200px; margin:0 auto; padding:0 32px;">
+  <div class="hero-badge fade-item">⚡ NFC-Powered Networking</div>
+  <h1 class="fade-item">One Tap.<br><span class="gradient-text">Endless Connections.</span></h1>
+  <p class="hero-sub fade-item">Custom NFC cards, stands &amp; keychains for your social, business, and brand. Stop asking people to search for your page — your link is just one tap away.</p>
+  <div class="hero-actions fade-item">
+    <a href="#products" class="hero-btn-primary">Shop Products ↓</a>
+    <a href="#how-it-works" class="hero-btn-secondary">See How It Works</a>
+  </div>
+  <div class="hero-image fade-item">
+    <img src="img/ONE TAP.png" alt="One Tap NFC product">
+  </div>
+  <div class="hero-stats fade-item">
+    <div class="hero-stat">
+      <div class="hero-stat-number">3</div>
+      <div class="hero-stat-label">Product Types</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-number">∞</div>
+      <div class="hero-stat-label">Links Per Card</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-number">1</div>
+      <div class="hero-stat-label">Tap to Connect</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SOCIAL PROOF ===== -->
+<div style="max-width:1200px; margin:0 auto; padding:0 32px;">
+  <div class="social-proof fade-item">
+    <div class="social-proof-item">
+      <div class="social-proof-icon g">G</div>
+      Google Reviews
+    </div>
+    <div class="social-proof-item">
+      <div class="social-proof-icon fb">f</div>
+      Facebook
+    </div>
+    <div class="social-proof-item">
+      <div class="social-proof-icon ig">📷</div>
+      Instagram
+    </div>
+  </div>
+</div>
+
+<!-- ===== PRODUCTS ===== -->
+<section id="products" class="section" style="max-width:1200px; margin:0 auto; padding-left:32px; padding-right:32px;">
+  <div class="section-center">
+    <div class="section-label fade-item">✦ Our Products</div>
+    <h2 class="section-title fade-item">Choose Your Perfect<br>NFC Product</h2>
+    <p class="section-subtitle fade-item">Every product is fully customizable with your brand, colors, logo, and links. All products use premium NFC technology.</p>
+  </div>
+
+  <div class="products-grid">
+    <!-- PRODUCT 1: NFC STAND -->
+    <div class="product-card fade-item">
+      <span class="product-card-badge badge-new">Popular</span>
+      <div class="product-visual" style="background: linear-gradient(135deg, #EFF6FF, #DBEAFE);">
+        <div class="product-visual-icon">📱</div>
+      </div>
+      <div class="product-info">
+        <h3 class="product-name">NFC Stand</h3>
+        <p class="product-tagline">Desk-ready stand with 3 social media tabs. Perfect for shops, offices, and reception areas.</p>
+        <ul class="product-features">
+          <li><span class="check">✓</span> 3 social media tabs to follow</li>
+          <li><span class="check">✓</span> Instagram, Facebook, TikTok</li>
+          <li><span class="check">✓</span> Stable desk / counter design</li>
+          <li><span class="check">✓</span> Fully customizable colors</li>
+          <li><span class="check">✓</span> Add your own logo</li>
+        </ul>
+        <a href="customer-login.html" class="product-cta product-cta-primary">Customize &amp; Order</a>
+      </div>
+    </div>
+
+    <!-- PRODUCT 2: NFC CARD -->
+    <div class="product-card fade-item">
+      <span class="product-card-badge badge-popular">Best Seller</span>
+      <div class="product-visual" style="background: linear-gradient(135deg, #F5F3FF, #EDE9FE);">
+        <div class="product-visual-icon">💳</div>
+      </div>
+      <div class="product-info">
+        <h3 class="product-name">NFC Card</h3>
+        <p class="product-tagline">Credit card–sized. All your socials, website, portfolio &amp; contact info in one tap. Doubles as a calling card.</p>
+        <ul class="product-features">
+          <li><span class="check">✓</span> All social media links</li>
+          <li><span class="check">✓</span> Website &amp; portfolio links</li>
+          <li><span class="check">✓</span> Digital calling card / vCard</li>
+          <li><span class="check">✓</span> Google Reviews link</li>
+          <li><span class="check">✓</span> Premium matte / gloss finish</li>
+        </ul>
+        <a href="customer-login.html" class="product-cta product-cta-primary">Customize &amp; Order</a>
+      </div>
+    </div>
+
+    <!-- PRODUCT 3: KEYCHAIN -->
+    <div class="product-card fade-item">
+      <span class="product-card-badge badge-custom">Custom</span>
+      <div class="product-visual" style="background: linear-gradient(135deg, #ECFDF5, #D1FAE5);">
+        <div class="product-visual-icon">🔗</div>
+      </div>
+      <div class="product-info">
+        <h3 class="product-name">NFC Keychain</h3>
+        <p class="product-tagline">Always with you. Attach to keys or bags — your links are always ready to share with one tap.</p>
+        <ul class="product-features">
+          <li><span class="check">✓</span> All social media links</li>
+          <li><span class="check">✓</span> Website &amp; portfolio links</li>
+          <li><span class="check">✓</span> Durable acrylic / metal build</li>
+          <li><span class="check">✓</span> Custom shape &amp; colors</li>
+          <li><span class="check">✓</span> Logo &amp; branding available</li>
+        </ul>
+        <a href="customer-login.html" class="product-cta product-cta-primary">Customize &amp; Order</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== NFC CARD DETAIL ===== -->
+<section class="section" style="max-width:1200px; margin:0 auto; padding-left:32px; padding-right:32px;">
+  <div class="nfc-detail">
+    <div class="nfc-detail-visual fade-item">
+      <div class="nfc-tap-waves">
+        <span style="height:20px;"></span>
+        <span style="height:30px;"></span>
+        <span style="height:24px;"></span>
+      </div>
+      <div class="nfc-card-mockup">
+        <div class="nfc-card-logo">ONE<span>TAP</span></div>
+        <div class="nfc-card-name">Your Name</div>
+        <div class="nfc-card-title">Brand Designer</div>
+        <div class="nfc-card-links">
+          <div class="nfc-card-link">
+            <div class="nfc-card-link-icon ig">📷</div>
+            Follow us on Instagram
+          </div>
+          <div class="nfc-card-link">
+            <div class="nfc-card-link-icon fb">f</div>
+            Like us on Facebook
+          </div>
+          <div class="nfc-card-link">
+            <div class="nfc-card-link-icon g">G</div>
+            Leave a Google Review
+          </div>
+          <div class="nfc-card-link">
+            <div class="nfc-card-link-icon link">🔗</div>
+            Website, Portfolio &amp; More
+          </div>
+        </div>
+        <div class="nfc-tap-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="nfc-detail-content fade-item">
+      <div class="section-label">✦ NFC Card — Deep Dive</div>
+      <h3>ONE TAP. <span>ONE LINK.</span><br>ENDLESS POSSIBILITIES.</h3>
+      <p>Upgrade your traditional calling card into a modern, interactive card that lets clients instantly connect with your contact details, social media, website, and more.</p>
+      <ul class="nfc-detail-features">
+        <li>
+          <div class="feat-icon blue">📱</div>
+          <div><strong>Tap to Follow</strong> — Customers tap their phone on your card and instantly land on your Instagram, Facebook, or TikTok page.</div>
+        </li>
+        <li>
+          <div class="feat-icon green">⭐</div>
+          <div><strong>Google Reviews</strong> — Direct customers to leave a 5-star review. Boost your online reputation with every interaction.</div>
+        </li>
+        <li>
+          <div class="feat-icon purple">💼</div>
+          <div><strong>Digital Calling Card</strong> — Share your name, phone, email, website, and portfolio — all saved to their contacts with one tap.</div>
+        </li>
+        <li>
+          <div class="feat-icon orange">🔄</div>
+          <div><strong>Update Anytime</strong> — Change your links, info, or design without replacing the physical card. Your data stays fresh.</div>
+        </li>
+      </ul>
+      <a href="customer-login.html" class="nfc-detail-cta">Get Your NFC Card →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section id="how-it-works" class="section section-center" style="max-width:1200px; margin:0 auto; padding-left:32px; padding-right:32px;">
+  <div class="section-label fade-item">✦ Simple Process</div>
+  <h2 class="section-title fade-item">How It Works</h2>
+  <p class="section-subtitle fade-item">Three simple steps from order to connection.</p>
+
+  <div class="steps-grid">
+    <div class="step-card fade-item">
+      <div class="step-number">1</div>
+      <h4>Customize</h4>
+      <p>Choose your product, upload your logo, pick your colors, and add all your links and contact info.</p>
+    </div>
+    <div class="step-card fade-item">
+      <div class="step-number">2</div>
+      <h4>We Produce</h4>
+      <p>We print and program your NFC chip with all your links. Premium quality, fast turnaround.</p>
+    </div>
+    <div class="step-card fade-item">
+      <div class="step-number">3</div>
+      <h4>Tap &amp; Connect</h4>
+      <p>Hand it out or display it. People tap their phone and instantly land on your links. No app needed.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== USE CASES ===== -->
+<section class="section section-center" style="max-width:1200px; margin:0 auto; padding-left:32px; padding-right:32px;">
+  <div class="section-label fade-item">✦ Who It's For</div>
+  <h2 class="section-title fade-item">Built for Business<br>&amp; Personal Use</h2>
+  <p class="section-subtitle fade-item">Turn every interaction into a connection.</p>
+
+  <div class="usecases-grid">
+    <div class="usecase-card fade-item">
+      <div class="usecase-icon biz">💼</div>
+      <h4>For Business</h4>
+      <p>Turn every customer interaction into a new follower, inquiry, or connection. Share your Facebook, Instagram, TikTok, website, menu, contact details, and more — all in one tap.</p>
+    </div>
+    <div class="usecase-card fade-item">
+      <div class="usecase-icon personal">👤</div>
+      <h4>For Personal</h4>
+      <p>Your digital profile, socials, portfolio, or contact info — always ready to share. One tap and go. No searching. No typing. No hassle.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section id="faq" class="section section-center" style="max-width:1200px; margin:0 auto; padding-left:32px; padding-right:32px;">
+  <div class="section-label fade-item">✦ FAQ</div>
+  <h2 class="section-title fade-item">Frequently Asked Questions</h2>
+
+  <div class="faq-list">
+    <div class="faq-item fade-item">
+      <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        How can an NFC card help me?
+        <svg class="faq-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+      <div class="faq-answer">
+        <p>Upgrade your traditional calling card into a modern, interactive card that lets clients instantly connect with your contact details, social media, website, and more — all with one tap of their phone.</p>
+      </div>
+    </div>
+    <div class="faq-item fade-item">
+      <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        Can I customize my NFC card?
+        <svg class="faq-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+      <div class="faq-answer">
+        <p>Yes! Choose your own design, colors, logo, style, and information to create a card that matches your personal or business brand. Every product is fully customizable.</p>
+      </div>
+    </div>
+    <div class="faq-item fade-item">
+      <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        Can I update my information later?
+        <svg class="faq-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+      <div class="faq-answer">
+        <p>Yes. You can update your digital information anytime without needing to replace your physical NFC card. Just log in to your account and edit your links.</p>
+      </div>
+    </div>
+    <div class="faq-item fade-item">
+      <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        Do I need an app?
+        <svg class="faq-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+      <div class="faq-answer">
+        <p>No app needed. Modern smartphones (iPhone and Android) have built-in NFC readers. Just tap your phone on the card and you're connected instantly.</p>
+      </div>
+    </div>
+    <div class="faq-item fade-item">
+      <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        How does this help my business?
+        <svg class="faq-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+      <div class="faq-answer">
+        <p>The cards make it easier for your customers to interact with your business using NFC technology. Customers can simply tap their phone and instantly be directed to your Google review page, Facebook, Instagram, website, digital menu, and more.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA BANNER ===== -->
+<section style="max-width:1200px; margin:0 auto; padding-left:32px; padding-right:32px;">
+  <div class="cta-banner fade-item">
+    <h2>Ready to Get Connected?</h2>
+    <p>Join thousands of businesses and professionals using One Tap PH to share their links instantly.</p>
+    <a href="customer-login.html" class="cta-banner-btn">Get Started Free →</a>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="site-footer" style="max-width:1200px; margin:0 auto; padding-left:32px; padding-right:32px;">
+  <div class="footer-inner">
+    <div class="footer-copy">© 2026 One Tap PH. All rights reserved.</div>
+    <div class="footer-links">
+      <a href="customer-login.html">My Account</a>
+      <a href="#faq">FAQ</a>
+      <a href="#products">Products</a>
+    </div>
+  </div>
+</footer>
+
 <script>
-  const settings = getHomePageSettings();
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
 
-  if (settings.headline) {
-    const headlineWrap = document.getElementById('home-headline');
-    headlineWrap.innerHTML = settings.headline + (settings.subheadline ? '<br><span>' + settings.subheadline + '</span>' : '');
-  }
+  // Intersection Observer for fade-in animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.animationPlayState = 'running';
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
 
-  if (settings.description) {
-    document.getElementById('home-description').textContent = settings.description;
-  }
-
-  if (settings.image) {
-    const image = document.getElementById('home-image');
-    image.src = settings.image;
-    image.alt = settings.subheadline || 'One Tap product mockup';
-  }
-
-  if (settings.accountText) {
-    document.getElementById('home-account-link').textContent = settings.accountText;
-  }
-
-  if (Array.isArray(settings.badges) && settings.badges.length) {
-    const badgeWrap = document.getElementById('home-badges');
-    badgeWrap.innerHTML = settings.badges.map(label => '<span>' + label + '</span>').join('');
-  }
+  document.querySelectorAll('.fade-item').forEach(el => {
+    el.style.animationPlayState = 'paused';
+    observer.observe(el);
+  });
 </script>
+
 </body>
 </html>
