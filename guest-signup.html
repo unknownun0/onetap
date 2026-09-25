@@ -30,10 +30,10 @@
 
         <label class="field">
           <span>Password</span>
-          <input type="password" id="signup-password" required>
+          <input type="password" id="signup-password" required minlength="8">
         </label>
 
-        <button type="submit" class="primary-cta">Create account</button>
+        <button type="submit" class="primary-cta" id="signup-btn">Create account</button>
       </form>
     </section>
   </div>
@@ -49,14 +49,28 @@
         return null;
       }
 
-      const guests = await requestJson('/api/guests');
-      if (!guests) {
+      // Use the new public lookup endpoint
+      const apiBase = getBaseUrl();
+      let response;
+      try {
+        response = await fetch(apiBase + '/api/guests/lookup?token=' + encodeURIComponent(token));
+      } catch (e) {
         alert('Cannot reach the server. Make sure the Node server is running (node server.js on port 3000).');
         window.location.href = 'customer-login.html';
         return null;
       }
-      const invitingGuest = Array.isArray(guests) ? guests.find(item => item.token === token) : null;
 
+      if (!response.ok) {
+        if (response.status === 404) {
+          alert('This invite link is invalid or has expired.');
+        } else {
+          alert('Server error. Please try again later.');
+        }
+        window.location.href = 'customer-login.html';
+        return null;
+      }
+
+      const invitingGuest = await response.json().catch(() => null);
       if (!invitingGuest) {
         alert('This invite link is invalid.');
         window.location.href = 'customer-login.html';
@@ -91,6 +105,10 @@
         return;
       }
 
+      const signupBtn = document.getElementById('signup-btn');
+      signupBtn.disabled = true;
+      signupBtn.textContent = 'Creating account...';
+
       const result = await createGuestAccount({
         guestToken: inviteState.token,
         name: document.getElementById('signup-name').value,
@@ -98,7 +116,14 @@
         password: document.getElementById('signup-password').value
       });
 
+      signupBtn.disabled = false;
+      signupBtn.textContent = 'Create account';
+
       if (result.error) {
+        if (result.redirect) {
+          window.location.href = result.redirect;
+          return;
+        }
         alert(result.error);
         return;
       }

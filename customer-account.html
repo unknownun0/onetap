@@ -259,7 +259,7 @@
           <input id="profile-website" type="url" placeholder="https://example.com">
         </label>
 
-        <button type="submit" class="primary-cta">Save profile</button>
+        <button type="submit" class="primary-cta" id="save-profile-btn">Save profile</button>
       </form>
 
       <div class="account-actions" style="margin-top: 12px;">
@@ -330,7 +330,39 @@
       document.getElementById('profile-website').value = profile.website || '';
     }
 
-    renderAccount();
+    // Check session validity on load
+    async function checkSession() {
+      if (!session) {
+        window.location.href = 'customer-login.html';
+        return false;
+      }
+      // Try to fetch a protected endpoint to verify token
+      try {
+        const customerToken = getCustomerToken();
+        if (customerToken) {
+          const apiBase = getBaseUrl();
+          const resp = await fetch(apiBase + '/api/customers/profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-customer-token': customerToken },
+            body: JSON.stringify({ name: session.name })
+          });
+          if (resp.status === 401) {
+            setCustomerToken(null);
+            setCustomerSession(null);
+            alert('Your session has expired. Please log in again.');
+            window.location.href = 'customer-login.html';
+            return false;
+          }
+        }
+      } catch (e) {
+        // Network error - continue with local session
+      }
+      return true;
+    }
+
+    checkSession().then(valid => {
+      if (valid) renderAccount();
+    });
 
     document.getElementById('account-summary-toggle').addEventListener('click', () => {
       const card = document.getElementById('account-card');
@@ -344,6 +376,10 @@
         window.location.href = 'customer-login.html';
         return;
       }
+
+      const saveBtn = document.getElementById('save-profile-btn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
 
       const fileInput = document.getElementById('profile-avatar-upload');
       const avatarUrl = document.getElementById('profile-avatar-url').value.trim();
@@ -375,11 +411,19 @@
       });
 
       if (payload.error) {
+        if (payload.redirect) {
+          window.location.href = payload.redirect;
+          return;
+        }
         alert(payload.error);
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save profile';
         return;
       }
 
       renderAccount();
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save profile';
       alert('Profile saved.');
     });
 

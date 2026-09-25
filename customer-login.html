@@ -26,7 +26,7 @@
           <input type="password" id="customer-password" required>
         </label>
 
-        <button type="submit" class="primary-cta">Login</button>
+        <button type="submit" class="primary-cta" id="login-btn">Login</button>
       </form>
 
       <p class="section-hint" style="margin-top: 16px;">Need to create an account? Use the invite link from the admin.</p>
@@ -36,19 +36,51 @@
 
   <script src="guest-admin.js"></script>
   <script>
+    // Check if already logged in
     const existingSession = getCustomerSession();
-    if (existingSession) {
-      window.location.href = 'customer-account.html';
+    const existingToken = getCustomerToken();
+    if (existingSession && existingToken) {
+      // Verify token is still valid
+      (async () => {
+        try {
+          const apiBase = getBaseUrl();
+          const resp = await fetch(apiBase + '/api/customers/profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-customer-token': existingToken },
+            body: JSON.stringify({ name: existingSession.name })
+          });
+          if (resp.ok) {
+            window.location.href = 'customer-account.html';
+            return;
+          }
+        } catch (e) {
+          // Network error - let them try to log in
+        }
+        // Token invalid or expired
+        setCustomerToken(null);
+        setCustomerSession(null);
+      })();
     }
 
     document.getElementById('customer-login-form').addEventListener('submit', async (event) => {
       event.preventDefault();
+      const loginBtn = document.getElementById('login-btn');
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Logging in...';
+
       const result = await loginCustomer({
         email: document.getElementById('customer-email').value,
         password: document.getElementById('customer-password').value
       });
 
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Login';
+
       if (!result.ok) {
+        if (result.redirect) {
+          window.location.href = result.redirect;
+          return;
+        }
         alert(result.error || 'Unable to log in.');
         return;
       }

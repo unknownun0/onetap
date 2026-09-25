@@ -184,6 +184,10 @@
       background: #FEF2F2;
       border-color: rgba(220, 38, 38, 0.3);
     }
+    .table-action-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
     .admin-tabs {
       display: flex;
       flex-wrap: wrap;
@@ -219,6 +223,38 @@
     }
     .hidden {
       display: none !important;
+    }
+    .loading-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .loading-spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 12px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .error-state {
+      padding: 24px;
+      text-align: center;
+      color: #b91c1c;
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      border-radius: 12px;
+      margin: 16px 0;
+    }
+    .error-state button {
+      margin-top: 12px;
     }
     @media (max-width: 980px) {
       .guest-list {
@@ -338,20 +374,22 @@
               <span>Notes</span>
               <input id="guest-notes" name="notes" type="text" placeholder="VIP customer, sales team...">
             </label>
-            <button type="submit" class="primary-cta">Create invite</button>
+            <button type="submit" class="primary-cta" id="guest-form-submit">Create invite</button>
           </form>
         </section>
 
         <section class="admin-panel fade-item">
           <h2 class="section-heading">Recent invites</h2>
-          <ul id="guest-list" class="guest-list"></ul>
+          <div id="guest-list-container">
+            <ul id="guest-list" class="guest-list"></ul>
+          </div>
         </section>
       </section>
 
       <section id="customer-panel" class="tab-panel">
         <section class="admin-panel fade-item">
           <h2 class="section-heading">Customer accounts</h2>
-          <div class="admin-table-wrap">
+          <div id="accounts-table-container" class="admin-table-wrap">
             <table class="admin-table">
               <thead>
                 <tr>
@@ -399,60 +437,87 @@
       });
     });
 
-    function renderGuestList() {
-      const list = document.getElementById('guest-list');
-      const guests = listGuests();
-      list.innerHTML = '';
+    function showLoading(containerId) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '<div class="loading-state"><div class="loading-spinner"></div>Loading...</div>';
+    }
 
-      if (!guests.length) {
-        const empty = document.createElement('li');
-        empty.className = 'guest-item';
-        empty.innerHTML = '<strong>No invites yet</strong><div class="guest-meta">Create one to generate a QR link for signup.</div>';
-        list.appendChild(empty);
-        return;
+    function showError(containerId, message, onRetry) {
+      const container = document.getElementById(containerId);
+      const retryBtn = onRetry ? `<button type="button" class="secondary-cta" onclick="${onRetry}">Retry</button>` : '';
+      container.innerHTML = `<div class="error-state">${message}${retryBtn}</div>`;
+    }
+
+    async function renderGuestList() {
+      showLoading('guest-list-container');
+      try {
+        const guests = await listGuestsRemote();
+        const list = document.getElementById('guest-list');
+        list.innerHTML = '';
+
+        if (!guests.length) {
+          const empty = document.createElement('li');
+          empty.className = 'guest-item';
+          empty.innerHTML = '<strong>No invites yet</strong><div class="guest-meta">Create one to generate a QR link for signup.</div>';
+          list.appendChild(empty);
+          return;
+        }
+
+        guests.slice().reverse().forEach((guest) => {
+          const item = document.createElement('li');
+          item.className = 'guest-item';
+
+          const status = guest.status === 'used' ? 'Used' : 'Pending';
+          const displayLink = guest.status === 'used' ? (guest.previewUrl || guest.signupUrl) : guest.signupUrl;
+          const displayQr = guest.status === 'used' ? (guest.previewUrl ? getQrDisplayUrl(guest.previewUrl) : guest.qrUrl) : guest.qrUrl || getQrDisplayUrl(guest.signupUrl);
+
+          item.innerHTML = `
+            <strong>${guest.name}</strong>
+            <div class="guest-meta">${guest.email}</div>
+            <div class="guest-meta">${guest.notes || 'No notes'}</div>
+            <div style="margin-top:10px;">
+              <span class="status-pill ${guest.status === 'used' ? 'status-pill--used' : ''}">${status}</span>
+            </div>
+            <div class="qr-box">
+              <img src="${displayQr}" alt="QR code for ${guest.name}" onerror="handleQrError(this, '${displayLink}')" />
+            </div>
+            <div class="link-row">
+              <input type="text" readonly value="${displayLink}" aria-label="${guest.status === 'used' ? 'Customer preview URL' : 'Guest sign-up URL'}">
+              <button class="tiny-btn" type="button" data-copy="${displayLink}">Copy</button>
+            </div>
+            <div class="guest-item-actions">
+              <button class="table-action-btn table-action-btn--danger" type="button" data-delete-invite="${guest.id}">Delete link</button>
+            </div>
+          `;
+
+          const copyBtn = item.querySelector('[data-copy]');
+          copyBtn.addEventListener('click', async () => {
+            await navigator.clipboard.writeText(displayLink);
+            alert(guest.status === 'used' ? 'Preview link copied' : 'Invite link copied');
+          });
+
+          const deleteBtn = item.querySelector('[data-delete-invite]');
+          deleteBtn.addEventListener('click', async () => {
+            if (!confirm('Delete this invite?')) return;
+            deleteBtn.disabled = true;
+            try {
+              await deleteGuestInviteRemote(guest.id);
+              renderGuestList();
+            } catch (err) {
+              deleteBtn.disabled = false;
+              alert('Failed to delete invite');
+            }
+          });
+
+          list.appendChild(item);
+        });
+      } catch (err) {
+        if (err.message === 'Admin session expired') {
+          showError('guest-list-container', 'Admin session expired. Please log in again.', "window.location.href='guest-admin.html'");
+          return;
+        }
+        showError('guest-list-container', 'Failed to load invites: ' + (err.message || 'Unknown error'), 'renderGuestList()');
       }
-
-      guests.slice().reverse().forEach((guest) => {
-        const item = document.createElement('li');
-        item.className = 'guest-item';
-
-        const status = guest.status === 'used' ? 'Used' : 'Pending';
-        const displayLink = guest.status === 'used' ? (guest.previewUrl || guest.signupUrl) : guest.signupUrl;
-        const displayQr = guest.status === 'used' ? (guest.previewUrl ? getQrDisplayUrl(guest.previewUrl) : guest.qrUrl) : guest.qrUrl || getQrDisplayUrl(guest.signupUrl);
-
-        item.innerHTML = `
-          <strong>${guest.name}</strong>
-          <div class="guest-meta">${guest.email}</div>
-          <div class="guest-meta">${guest.notes || 'No notes'}</div>
-          <div style="margin-top:10px;">
-            <span class="status-pill ${guest.status === 'used' ? 'status-pill--used' : ''}">${status}</span>
-          </div>
-          <div class="qr-box">
-            <img src="${displayQr}" alt="QR code for ${guest.name}" />
-          </div>
-          <div class="link-row">
-            <input type="text" readonly value="${displayLink}" aria-label="${guest.status === 'used' ? 'Customer preview URL' : 'Guest sign-up URL'}">
-            <button class="tiny-btn" type="button" data-copy="${displayLink}">Copy</button>
-          </div>
-          <div class="guest-item-actions">
-            <button class="table-action-btn table-action-btn--danger" type="button" data-delete-invite="${guest.id}">Delete link</button>
-          </div>
-        `;
-
-        const copyBtn = item.querySelector('[data-copy]');
-        copyBtn.addEventListener('click', async () => {
-          await navigator.clipboard.writeText(displayLink);
-          alert(guest.status === 'used' ? 'Preview link copied' : 'Invite link copied');
-        });
-
-        const deleteBtn = item.querySelector('[data-delete-invite]');
-        deleteBtn.addEventListener('click', () => {
-          deleteGuestInvite(guest.id);
-          renderGuestList();
-        });
-
-        list.appendChild(item);
-      });
     }
 
     function renderHomePageForm() {
@@ -465,62 +530,102 @@
       document.getElementById('home-badges').value = Array.isArray(settings.badges) ? settings.badges.join(', ') : 'ONE TAP, FACEBOOK, TIKTOK, LINKEDIN, ANY LINK';
     }
 
-    function renderAccountTable() {
-      const tbody = document.getElementById('account-table-body');
-      const accounts = listAccounts();
-      tbody.innerHTML = '';
+    async function renderAccountTable() {
+      showLoading('accounts-table-container');
+      try {
+        const accounts = await listAccountsRemote();
+        const tbody = document.getElementById('account-table-body');
+        tbody.innerHTML = '';
 
-      if (!accounts.length) {
-        tbody.innerHTML = '<tr><td colspan="5" class="guest-meta">No customer accounts yet.</td></tr>';
-        return;
-      }
+        if (!accounts.length) {
+          tbody.innerHTML = '<tr><td colspan="5" class="guest-meta">No customer accounts yet.</td></tr>';
+          return;
+        }
 
-      accounts.forEach((account) => {
-        const row = document.createElement('tr');
-        const statusLabel = (account.status || 'active') === 'inactive' ? 'Inactive' : 'Active';
-        row.innerHTML = `
-          <td>${account.name || 'Customer'}</td>
-          <td>${account.email || '—'}</td>
-          <td><span class="status-pill ${account.status === 'inactive' ? 'status-pill--used' : ''}">${statusLabel}</span></td>
-          <td>${new Date(account.createdAt || Date.now()).toLocaleDateString()}</td>
-          <td>
-            <div class="table-action-row">
-              <button class="table-action-btn" type="button" data-account-action="toggle" data-account-id="${account.id}">${account.status === 'inactive' ? 'Activate' : 'Deactivate'}</button>
-              <button class="table-action-btn table-action-btn--danger" type="button" data-account-action="delete" data-account-id="${account.id}">Delete</button>
-            </div>
-          </td>
-        `;
-        tbody.appendChild(row);
-      });
-
-      document.querySelectorAll('[data-account-action]').forEach((button) => {
-        button.addEventListener('click', () => {
-          const accountId = button.getAttribute('data-account-id');
-          const action = button.getAttribute('data-account-action');
-
-          if (action === 'toggle') {
-            const account = listAccounts().find(item => item.id === accountId);
-            if (!account) return;
-            const updated = account.status === 'inactive' ? { ...account, status: 'active' } : { ...account, status: 'inactive' };
-            setStore('accounts', listAccounts().map(item => item.id === accountId ? updated : item));
-            renderAccountTable();
-            return;
-          }
-
-          if (action === 'delete') {
-            deleteAccount(accountId);
-            renderAccountTable();
-          }
+        accounts.forEach((account) => {
+          const row = document.createElement('tr');
+          const statusLabel = (account.status || 'active') === 'inactive' ? 'Inactive' : 'Active';
+          row.innerHTML = `
+            <td>${account.name || 'Customer'}</td>
+            <td>${account.email || '—'}</td>
+            <td><span class="status-pill ${account.status === 'inactive' ? 'status-pill--used' : ''}">${statusLabel}</span></td>
+            <td>${new Date(account.createdAt || Date.now()).toLocaleDateString()}</td>
+            <td>
+              <div class="table-action-row">
+                <button class="table-action-btn" type="button" data-account-action="toggle" data-account-id="${account.id}" ${account.status === 'inactive' ? '' : ''}>${account.status === 'inactive' ? 'Activate' : 'Deactivate'}</button>
+                <button class="table-action-btn table-action-btn--danger" type="button" data-account-action="delete" data-account-id="${account.id}">Delete</button>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(row);
         });
-      });
+
+        document.querySelectorAll('[data-account-action]').forEach((button) => {
+          button.addEventListener('click', async () => {
+            const accountId = button.getAttribute('data-account-id');
+            const action = button.getAttribute('data-account-action');
+
+            button.disabled = true;
+            const originalText = button.textContent;
+            button.textContent = action === 'toggle' ? '...' : 'Deleting...';
+
+            try {
+              if (action === 'toggle') {
+                // Find current status
+                const accounts = await listAccountsRemote();
+                const account = accounts.find(item => item.id === accountId);
+                if (!account) {
+                  alert('Account not found');
+                  return;
+                }
+                const newStatus = account.status === 'inactive' ? 'active' : 'inactive';
+                if (newStatus === 'active') {
+                  await activateAccountRemote(accountId);
+                } else {
+                  await deactivateAccountRemote(accountId);
+                }
+              } else if (action === 'delete') {
+                if (!confirm('Permanently delete this account?')) {
+                  button.disabled = false;
+                  button.textContent = originalText;
+                  return;
+                }
+                await deleteAccountRemote(accountId);
+              }
+              renderAccountTable();
+            } catch (err) {
+              button.disabled = false;
+              button.textContent = originalText;
+              if (err.message === 'Admin session expired') {
+                showError('accounts-table-container', 'Admin session expired. Please log in again.', "window.location.href='guest-admin.html'");
+              } else {
+                alert('Failed: ' + (err.message || 'Unknown error'));
+              }
+            }
+          });
+        });
+      } catch (err) {
+        if (err.message === 'Admin session expired') {
+          showError('accounts-table-container', 'Admin session expired. Please log in again.', "window.location.href='guest-admin.html'");
+          return;
+        }
+        showError('accounts-table-container', 'Failed to load accounts: ' + (err.message || 'Unknown error'), 'renderAccountTable()');
+      }
     }
 
-    document.getElementById('admin-login-form').addEventListener('submit', (event) => {
+    document.getElementById('admin-login-form').addEventListener('submit', async (event) => {
       event.preventDefault();
-      const result = loginAdmin({
+      const submitBtn = document.querySelector('#admin-login-form .primary-cta');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Logging in...';
+
+      const result = await loginAdminRemote({
         username: document.getElementById('admin-user').value,
         password: document.getElementById('admin-pass').value
       });
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Login';
 
       if (!result.ok) {
         alert(result.error);
@@ -533,20 +638,31 @@
       renderAccountTable();
     });
 
-    document.getElementById('logout-btn').addEventListener('click', () => {
-      logoutAdmin();
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      await logoutAdminRemote();
       showDashboard(false);
     });
 
     document.getElementById('guest-form').addEventListener('submit', async (event) => {
       event.preventDefault();
+      const submitBtn = document.getElementById('guest-form-submit');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Creating...';
+
       const result = await createGuestInvite({
         name: document.getElementById('guest-name').value,
         email: document.getElementById('guest-email').value,
         notes: document.getElementById('guest-notes').value
       });
 
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Create invite';
+
       if (result && result.error) {
+        if (result.redirect) {
+          window.location.href = result.redirect;
+          return;
+        }
         alert(result.error);
         return;
       }
@@ -558,6 +674,10 @@
 
     document.getElementById('home-page-form').addEventListener('submit', async (event) => {
       event.preventDefault();
+      const submitBtn = document.querySelector('#home-page-form .primary-cta');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving...';
+
       const homeFileInput = document.getElementById('home-image-upload');
       let imageValue = document.getElementById('home-image').value.trim();
 
@@ -574,21 +694,26 @@
         badges: document.getElementById('home-badges').value.split(',').map(item => item.trim()).filter(Boolean)
       };
 
-      setHomePageSettings(settings);
+      await setHomePageSettingsRemote(settings);
       renderHomePageForm();
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Save home page';
       alert('Home page updated successfully');
       window.location.href = 'index.html';
     });
 
-    if (getAdminSession()) {
-      showDashboard(true);
-    } else {
-      showDashboard(false);
+    // Check admin session on load
+    async function init() {
+      if (getAdminToken()) {
+        showDashboard(true);
+        renderGuestList();
+        renderAccountTable();
+      } else {
+        showDashboard(false);
+      }
     }
 
-    renderGuestList();
-    renderHomePageForm();
-    renderAccountTable();
+    init();
   </script>
 </body>
 </html>

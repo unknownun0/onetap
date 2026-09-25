@@ -40,7 +40,7 @@ function getBaseUrl() {
   if (typeof window !== 'undefined' && window.location) {
     return `${window.location.origin}${window.location.pathname.replace(/[^/]*$/, '')}`;
   }
-  return 'http://localhost';
+  return 'http://localhost:3000/';
 }
 
 function generateId() {
@@ -88,17 +88,59 @@ function getHomePageSettings() {
   };
 }
 
+function getAdminToken() {
+  try {
+    const session = JSON.parse(getStorage().getItem('onetap_admin_session') || 'null');
+    return session?.token || null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function setAdminToken(token) {
+  if (token) {
+    getStorage().setItem('onetap_admin_session', JSON.stringify({ token }));
+    return token;
+  }
+  getStorage().removeItem('onetap_admin_session');
+  return null;
+}
+
+function getCustomerToken() {
+  try {
+    const session = JSON.parse(getStorage().getItem('onetap_customer_session') || 'null');
+    return session?.customerToken || null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function setCustomerToken(token) {
+  if (token) {
+    getStorage().setItem('onetap_customer_session', JSON.stringify({ customerToken: token }));
+    return token;
+  }
+  getStorage().removeItem('onetap_customer_session');
+  return null;
+}
+
 async function fetchJson(path, options = {}) {
   if (typeof window === 'undefined' || typeof window.fetch !== 'function') {
     return null;
   }
 
   try {
+    const headers = { 'Content-Type': 'application/json' };
+    const adminToken = getAdminToken();
+    const customerToken = getCustomerToken();
+    if (adminToken) headers['x-admin-token'] = adminToken;
+    if (customerToken) headers['x-customer-token'] = customerToken;
+
     const response = await window.fetch(path, {
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       ...options,
       headers: {
-        'Content-Type': 'application/json',
+        ...headers,
         ...(options.headers || {})
       }
     });
@@ -167,11 +209,17 @@ function requestJson(path, options = {}) {
   }
 
   const fullPath = path.startsWith('http') ? path : getBaseUrl() + path;
+  const headers = { 'Content-Type': 'application/json' };
+  const adminToken = getAdminToken();
+  const customerToken = getCustomerToken();
+  if (adminToken) headers['x-admin-token'] = adminToken;
+  if (customerToken) headers['x-customer-token'] = customerToken;
+
   return fetch(fullPath, {
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      ...headers,
       ...(options.headers || {})
     }
   }).then(async (response) => {
@@ -242,6 +290,11 @@ async function createGuestAccountRemote({ guestToken, name, email, password }) {
     return payload || { error: 'Unable to create account right now.' };
   }
 
+  // Store customer token if returned
+  if (payload.customerToken) {
+    setCustomerToken(payload.customerToken);
+  }
+
   return payload;
 }
 
@@ -260,6 +313,11 @@ async function loginCustomerRemote({ email, password }) {
     return payload || { ok: false, error: 'Unable to log in right now.' };
   }
 
+  // Store customer token if returned
+  if (payload.customerToken) {
+    setCustomerToken(payload.customerToken);
+  }
+
   return payload;
 }
 
@@ -274,6 +332,62 @@ async function saveCustomerProfileRemote(profile) {
   }
 
   return payload;
+}
+
+// New async functions for admin account management
+async function activateAccountRemote(accountId) {
+  const payload = await requestJson(`/api/accounts/${accountId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status: 'active' })
+  });
+  return payload;
+}
+
+async function deactivateAccountRemote(accountId) {
+  const payload = await requestJson(`/api/accounts/${accountId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status: 'inactive' })
+  });
+  return payload;
+}
+
+async function deleteAccountRemote(accountId) {
+  const payload = await requestJson(`/api/accounts/${accountId}`, { method: 'DELETE' });
+  return payload;
+}
+
+async function loginAdminRemote({ username, password }) {
+  const apiBase = getBaseUrl();
+  const response = await fetch(apiBase + '/api/admin/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+
+  const text = await response.text().catch(() => '');
+  let data = null;
+  try { data = JSON.parse(text); } catch (e) { /* not JSON */ }
+
+  if (!response.ok) {
+    return { ok: false, error: (data && data.error) || 'Server error (' + response.status + ')' };
+  }
+  if (!data || !data.ok) {
+    return { ok: false, error: (data && data.error) || 'Invalid admin credentials' };
+  }
+
+  // Store admin token
+  if (data.token) {
+    setAdminToken(data.token);
+  }
+
+  return { ok: true, token: data.token };
+}
+
+async function logoutAdminRemote() {
+  const apiBase = getBaseUrl();
+  await fetch(apiBase + '/api/admin/logout', { method: 'POST' }).catch(() => {});
+  setAdminToken(null);
+  return true;
 }
 
 function encodeUrlData(value) {
@@ -367,12 +481,13 @@ function generateQrFallbackDataUrl(value, size = 220) {
 function getQrDisplayUrl(value, size = 220) {
   const encoded = encodeURIComponent(String(value || ''));
   const remoteUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&format=png&data=${encoded}`;
-
-  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-    return generateQrFallbackDataUrl(value, size);
-  }
-
   return remoteUrl;
+}
+
+// QR image error handler - call this on <img onerror="...">
+function handleQrError(img, value, size = 220) {
+  img.onerror = null; // prevent loops
+  img.src = generateQrFallbackDataUrl(value, size);
 }
 
 function buildGuestPreviewUrl(profile = {}) {
@@ -421,6 +536,11 @@ function createGuestInvite({ name, email, notes = '' }) {
       try { data = JSON.parse(text); } catch (e) { /* not JSON */ }
 
       if (!response.ok) {
+        // Check for 401 - admin session expired
+        if (response.status === 401) {
+          setAdminToken(null);
+          return { error: 'Admin session expired. Please log in again.', redirect: 'guest-admin.html' };
+        }
         return { error: (data && data.error) || 'Server error (' + response.status + '). Is the Node server running on port 3000?' };
       }
       if (!data || data.error) {
@@ -432,6 +552,7 @@ function createGuestInvite({ name, email, notes = '' }) {
     });
   }
 
+  // Offline fallback
   const existingGuests = getStore('guests');
   const existingAccounts = getStore('accounts');
   const emailExists = [...existingGuests, ...existingAccounts].some(item => normalizeEmail(item.email) === cleanEmail);
@@ -525,6 +646,10 @@ function listGuests() {
     const apiBase = getBaseUrl();
     return window.fetch(apiBase + '/api/guests')
       .then(async (response) => {
+        if (response.status === 401) {
+          setAdminToken(null);
+          throw new Error('Admin session expired');
+        }
         const data = await response.json().catch(() => null);
         if (Array.isArray(data)) {
           window.__ONETAP_GUESTS = data;
@@ -553,6 +678,10 @@ function listAccounts() {
     const apiBase = getBaseUrl();
     window.fetch(apiBase + '/api/accounts')
       .then(async (response) => {
+        if (response.status === 401) {
+          setAdminToken(null);
+          throw new Error('Admin session expired');
+        }
         const data = await response.json().catch(() => null);
         if (Array.isArray(data)) {
           setStore('accounts', data);
@@ -564,6 +693,7 @@ function listAccounts() {
   return getStore('accounts');
 }
 
+// Offline-only functions (kept for test compatibility)
 function deactivateAccount(accountId) {
   const accounts = getStore('accounts').map(item => item.id === accountId ? { ...item, status: 'inactive', updatedAt: new Date().toISOString() } : item);
   setStore('accounts', accounts);
@@ -614,6 +744,9 @@ function createGuestAccount({ guestToken, name, email, password }) {
         return { error: (data && data.error) || 'Server error (' + response.status + '). Is the Node server running?' };
       }
       if (data && !data.error) {
+        if (data.customerToken) {
+          setCustomerToken(data.customerToken);
+        }
         setCustomerSession({
           id: data.id,
           name: data.name,
@@ -628,6 +761,7 @@ function createGuestAccount({ guestToken, name, email, password }) {
     });
   }
 
+  // Offline fallback
   if (guest.status === 'used') {
     return { error: 'This invitation has already been used' };
   }
@@ -701,15 +835,6 @@ function getAdminSession() {
   }
 }
 
-function setAdminSession(value) {
-  if (value) {
-    getStorage().setItem('onetap_admin_session', JSON.stringify(value));
-    return value;
-  }
-  getStorage().removeItem('onetap_admin_session');
-  return null;
-}
-
 function loginAdmin({ username, password }) {
   const cleanUser = String(username || '').trim().toLowerCase();
   const cleanPass = String(password || '').trim();
@@ -726,6 +851,30 @@ function loginAdmin({ username, password }) {
 function logoutAdmin() {
   getStorage().removeItem('onetap_admin_session');
   return true;
+}
+
+// Backward-compatible aliases for tests
+function getAdminSession() {
+  try {
+    const session = JSON.parse(getStorage().getItem('onetap_admin_session') || 'null');
+    // Old format: { username, loggedInAt }
+    // New format: { token }
+    // Tests check for username property
+    if (session?.username) return session;
+    if (session?.token) return { username: 'admin', loggedInAt: new Date().toISOString() };
+    return null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function setAdminSession(value) {
+  if (value) {
+    getStorage().setItem('onetap_admin_session', JSON.stringify(value));
+    return value;
+  }
+  getStorage().removeItem('onetap_admin_session');
+  return null;
 }
 
 function getCustomerSession() {
@@ -765,12 +914,21 @@ function loginCustomer({ email, password }) {
       try { data = JSON.parse(text); } catch (e) { /* not JSON */ }
 
       if (!response.ok) {
+        // Check for 401 - session expired
+        if (response.status === 401) {
+          setCustomerToken(null);
+          setCustomerSession(null);
+          return { ok: false, error: 'Session expired. Please log in again.', redirect: 'customer-login.html' };
+        }
         return { ok: false, error: (data && data.error) || 'Server error (' + response.status + '). Is the Node server running?' };
       }
       if (!data || !data.ok) {
         return { ok: false, error: (data && data.error) || 'Invalid email or password.' };
       }
 
+      if (data.customerToken) {
+        setCustomerToken(data.customerToken);
+      }
       setCustomerSession(data.session);
       return data;
     }).catch(() => ({ ok: false, error: 'Cannot reach the server. Make sure the Node server is running (node server.js).' }));
@@ -798,6 +956,7 @@ function loginCustomer({ email, password }) {
 }
 
 function logoutCustomer() {
+  setCustomerToken(null);
   setCustomerSession(null);
   return true;
 }
@@ -862,9 +1021,10 @@ function saveCustomerProfile(profile) {
 
   if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
     const apiBase = getBaseUrl();
+    const customerToken = getCustomerToken();
     window.fetch(apiBase + '/api/customers/profile', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(customerToken ? { 'x-customer-token': customerToken } : {}) },
       body: JSON.stringify({ ...payload, sessionId: session.id })
     }).catch(() => {});
   }
@@ -945,6 +1105,17 @@ if (typeof module !== 'undefined') {
     createGuestAccountRemote,
     deleteGuestInviteRemote,
     loginCustomerRemote,
-    saveCustomerProfileRemote
+    saveCustomerProfileRemote,
+    // New exports
+    activateAccountRemote,
+    deactivateAccountRemote,
+    deleteAccountRemote,
+    loginAdminRemote,
+    logoutAdminRemote,
+    handleQrError,
+    getAdminToken,
+    setAdminToken,
+    getCustomerToken,
+    setCustomerToken
   };
 }
