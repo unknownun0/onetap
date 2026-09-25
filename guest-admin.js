@@ -127,7 +127,8 @@ function setHomePageSettings(settings = {}) {
   };
 
   if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
-    window.fetch('/api/homepage', {
+    const apiBase = getBaseUrl();
+    window.fetch(apiBase + '/api/homepage', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(next)
@@ -165,7 +166,8 @@ function requestJson(path, options = {}) {
     return Promise.resolve(null);
   }
 
-  return fetch(path, {
+  const fullPath = path.startsWith('http') ? path : getBaseUrl() + path;
+  return fetch(fullPath, {
     headers: { 'Content-Type': 'application/json' },
     ...options,
     headers: {
@@ -408,7 +410,8 @@ function createGuestInvite({ name, email, notes = '' }) {
       notes: String(notes || '')
     };
 
-    return window.fetch('/api/guests', {
+    const apiBase = getBaseUrl();
+    return window.fetch(apiBase + '/api/guests', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -519,7 +522,8 @@ function getUsedInviteRedirectUrl(token) {
 
 function listGuests() {
   if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
-    window.fetch('/api/guests')
+    const apiBase = getBaseUrl();
+    return window.fetch(apiBase + '/api/guests')
       .then(async (response) => {
         const data = await response.json().catch(() => null);
         if (Array.isArray(data)) {
@@ -535,7 +539,8 @@ function listGuests() {
 
 function deleteGuestInvite(inviteId) {
   if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
-    window.fetch(`/api/guests/${encodeURIComponent(inviteId)}`, { method: 'DELETE' }).catch(() => {});
+    const apiBase = getBaseUrl();
+    window.fetch(apiBase + `/api/guests/${encodeURIComponent(inviteId)}`, { method: 'DELETE' }).catch(() => {});
   }
 
   const guests = getStore('guests').filter(item => item.id !== inviteId);
@@ -545,7 +550,8 @@ function deleteGuestInvite(inviteId) {
 
 function listAccounts() {
   if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
-    window.fetch('/api/accounts')
+    const apiBase = getBaseUrl();
+    window.fetch(apiBase + '/api/accounts')
       .then(async (response) => {
         const data = await response.json().catch(() => null);
         if (Array.isArray(data)) {
@@ -593,8 +599,9 @@ function createGuestAccount({ guestToken, name, email, password }) {
   }
 
   if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
+    const apiBase = getBaseUrl();
     const payload = { guestToken, name: cleanName, email: cleanEmail, password: cleanPassword };
-    return window.fetch('/api/accounts', {
+    return window.fetch(apiBase + '/api/accounts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -747,7 +754,8 @@ function loginCustomer({ email, password }) {
   }
 
   if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
-    return window.fetch('/api/customers/login', {
+    const apiBase = getBaseUrl();
+    return window.fetch(apiBase + '/api/customers/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: cleanEmail, password: cleanPassword })
@@ -853,7 +861,8 @@ function saveCustomerProfile(profile) {
   };
 
   if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
-    window.fetch('/api/customers/profile', {
+    const apiBase = getBaseUrl();
+    window.fetch(apiBase + '/api/customers/profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...payload, sessionId: session.id })
