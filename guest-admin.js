@@ -539,7 +539,7 @@ function createGuestInvite({ name, email, notes = '' }) {
         // Check for 401 - admin session expired
         if (response.status === 401) {
           setAdminToken(null);
-          return { error: 'Admin session expired. Please log in again.', redirect: 'guest-admin.html' };
+          return { error: 'Admin session expired. Please log in again.', redirect: 'admin.html' };
         }
         return { error: (data && data.error) || 'Server error (' + response.status + '). Is the Node server running on port 3000?' };
       }

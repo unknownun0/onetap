@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Guest admin</title>
+  <title>Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -283,7 +283,7 @@
 <body>
   <div class="page">
     <header class="form-header fade-item">
-      <h1 class="form-title">Guest admin</h1>
+      <h1 class="form-title">Admin</h1>
       <p class="form-subtitle">Create guest invites and generate QR codes that let new people create their account.</p>
     </header>
 
@@ -513,7 +513,7 @@
         });
       } catch (err) {
         if (err.message === 'Admin session expired') {
-          showError('guest-list-container', 'Admin session expired. Please log in again.', "window.location.href='guest-admin.html'");
+          showError('guest-list-container', 'Admin session expired. Please log in again.', "window.location.href='admin.html'");
           return;
         }
         showError('guest-list-container', 'Failed to load invites: ' + (err.message || 'Unknown error'), 'renderGuestList()');
@@ -597,7 +597,7 @@
               button.disabled = false;
               button.textContent = originalText;
               if (err.message === 'Admin session expired') {
-                showError('accounts-table-container', 'Admin session expired. Please log in again.', "window.location.href='guest-admin.html'");
+                showError('accounts-table-container', 'Admin session expired. Please log in again.', "window.location.href='admin.html'");
               } else {
                 alert('Failed: ' + (err.message || 'Unknown error'));
               }
@@ -606,7 +606,7 @@
         });
       } catch (err) {
         if (err.message === 'Admin session expired') {
-          showError('accounts-table-container', 'Admin session expired. Please log in again.', "window.location.href='guest-admin.html'");
+          showError('accounts-table-container', 'Admin session expired. Please log in again.', "window.location.href='admin.html'");
           return;
         }
         showError('accounts-table-container', 'Failed to load accounts: ' + (err.message || 'Unknown error'), 'renderAccountTable()');

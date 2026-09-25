@@ -5,7 +5,7 @@ A vanilla-JS, zero-dependency platform for creating NFC-powered digital business
 ## Features
 
 - **Landing Page** (`index.html`) — Product showcase with 3 NFC products (Stand, Card, Keychain)
-- **Admin Dashboard** (`guest-admin.html`) — Create guest invites, manage customers, edit homepage content
+- **Admin Dashboard** (`admin.html`) — Create guest invites, manage customers, edit homepage content
 - **Guest Signup** (`guest-signup.html`) — Invite-only account creation from admin-generated links
 - **Customer Portal** (`customer-account.html`) — Profile editor with live preview
 - **Public Profiles** (`profile.html`, `preview.html`) — Data encoded in URL hash, no server storage needed
@@ -40,7 +40,7 @@ node server.js
 | Page | Purpose |
 |------|---------|
 | `/` | Landing page with product showcase |
-| `/guest-admin.html` | Admin dashboard (login required) |
+| `/admin.html` | Admin dashboard (login required) |
 | `/customer-login.html` | Customer login |
 | `/customer-account.html` | Customer profile editor |
 | `/guest-signup.html?token=...` | Guest account creation from invite |
@@ -132,7 +132,7 @@ index.html              # Landing page + profile builder
 customer-login.html      # Customer login
 customer-account.html    # Customer profile editor
 guest-signup.html        # Guest → account from invite
-guest-admin.html         # Admin dashboard
+admin.html               # Admin dashboard
 profile.html / preview.html  # Public profile renderers
 app.js                   # Shared profile rendering (icons, vCard, contact sheet)
 guest-admin.js           # Client logic: auth, storage, API calls

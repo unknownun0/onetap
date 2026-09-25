@@ -31,7 +31,7 @@
       "guestToken": "guest_1ag58x9e_mu8k5l5j",
       "name": "Other Device User",
       "email": "devicecheck-20260919154422@example.com",
-      "password": "devicepass123",
+      "password": "scrypt:N3PLh547Ro2//rRGku4izw==:4fglnUNkgNZlQnrWH5PBfWLa6i315od348On56Rq42c=",
       "role": "guest",
       "createdAt": "2026-09-19T15:44:22.658Z",
       "status": "active"

@@ -6,7 +6,8 @@ const crypto = require('crypto');
 const zlib = require('zlib');
 
 const root = __dirname;
-const statePath = path.join(root, 'data-store.json');
+const isVercel = !!process.env.VERCEL_URL;
+const statePath = isVercel ? '/tmp/data-store.json' : path.join(root, 'data-store.json');
 
 // Files that should never be served directly
 const FORBIDDEN_FILES = new Set([
@@ -25,25 +26,16 @@ if (ADMIN_USERNAME === 'admin' && ADMIN_PASSWORD === 'admin123') {
   console.warn('⚠️  WARNING: Using default admin credentials (admin/admin123). Set ADMIN_USERNAME and ADMIN_PASSWORD environment variables for production.');
 }
 
-// In-memory session stores (lost on restart - known limitation)
+// In-memory session stores (lost on restart/cold start - known limitation)
 const adminSessions = new Map(); // token -> { username, createdAt }
 const customerSessions = new Map(); // token -> { accountId, email, createdAt }
 
-// Rate limiting: IP -> { count, resetAt }
-const loginAttempts = new Map(); // key: "admin:IP" or "customer:IP"
-const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
-const RATE_LIMIT_MAX = 10;
+// In-memory data store for Vercel (falls back to file on local)
+let memoryStore = null;
 
-// Write queue for atomic data-store.json updates
-let writeQueue = Promise.resolve();
-function enqueueWrite(fn) {
-  writeQueue = writeQueue.then(() => fn()).catch(err => console.error('Write queue error:', err));
-  return writeQueue;
-}
-
-function ensureStateFile() {
-  if (!fs.existsSync(statePath)) {
-    fs.writeFileSync(statePath, JSON.stringify({
+function getMemoryStore() {
+  if (!memoryStore) {
+    memoryStore = {
       guests: [],
       accounts: [],
       homePage: {
@@ -54,16 +46,41 @@ function ensureStateFile() {
         badges: ['ONE TAP', 'FACEBOOK', 'TIKTOK', 'LINKEDIN', 'ANY LINK'],
         accountText: 'My Account'
       }
-    }, null, 2));
+    };
+  }
+  return memoryStore;
+}
+
+// Rate limiting: IP -> { count, resetAt }
+const loginAttempts = new Map(); // key: "admin:IP" or "customer:IP"
+const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+const RATE_LIMIT_MAX = 10;
+
+// Write queue for atomic data-store.json updates (local only)
+let writeQueue = Promise.resolve();
+function enqueueWrite(fn) {
+  writeQueue = writeQueue.then(() => fn()).catch(err => console.error('Write queue error:', err));
+  return writeQueue;
+}
+
+function ensureStateFile() {
+  if (isVercel) return; // Use in-memory store on Vercel
+  if (!fs.existsSync(statePath)) {
+    fs.writeFileSync(statePath, JSON.stringify(getMemoryStore(), null, 2));
   }
 }
 
 function readState() {
+  if (isVercel) return getMemoryStore();
   ensureStateFile();
   return JSON.parse(fs.readFileSync(statePath, 'utf8'));
 }
 
 function writeState(next) {
+  if (isVercel) {
+    memoryStore = next;
+    return;
+  }
   // Atomic write: write to temp file then rename
   const tmpPath = statePath + '.tmp';
   fs.writeFileSync(tmpPath, JSON.stringify(next, null, 2));
@@ -403,7 +420,7 @@ function serveStaticFile(req, res, url) {
   fs.stat(filePath, (err, stats) => {
     if (err || !stats.isFile()) {
       // Fallback for known HTML routes
-      if (['/guest-signup.html', '/customer-login.html', '/customer-account.html', '/guest-admin.html', '/profile.html', '/preview.html'].includes(pathname)) {
+      if (['/guest-signup.html', '/customer-login.html', '/customer-account.html', '/admin.html', '/profile.html', '/preview.html'].includes(pathname)) {
         const fallbackPath = path.join(root, pathname.replace(/^\//, ''));
         fs.readFile(fallbackPath, (readErr, content) => {
           if (readErr) {
